@@ -71,11 +71,8 @@ namespace BBI.Unity.Game
 					num = num2;
 				}
 			}
-			if (num < m_DangerRadius)
-			{
-				return PlayableAreaState.Warning;
-			}
-			return PlayableAreaState.Danger;
+			_ = m_DangerRadius;
+			return PlayableAreaState.Safe;
 		}
 	}
 }

@@ -1,5 +1,6 @@
 using System;
 using BBI.Core.Utility;
+using Carbon.Core;
 using InControl;
 using Unity.Entities;
 using UnityEngine;
@@ -178,7 +179,10 @@ namespace BBI.Unity.Game
 					});
 				}
 			}
-			mCuttingToolController.AddHeat();
+			if (!GlobalOptions.Raw.GetBool("General.InfHeat") || SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
+			{
+				mCuttingToolController.AddHeat();
+			}
 			mCuttingToolController.DelayCooldown();
 		}
 

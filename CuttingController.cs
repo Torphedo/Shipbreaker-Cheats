@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using BBI.Core.Utility;
+using Carbon.Core;
 using InControl;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -419,7 +420,10 @@ namespace BBI.Unity.Game
 
 		private void StartCutting(ICutExecutionData data)
 		{
-			mCuttingToolController.AddHeat();
+			if (!GlobalOptions.Raw.GetBool("General.InfHeat") || SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
+			{
+				mCuttingToolController.AddHeat();
+			}
 			if (!mCuttingToolController.IsOverheated)
 			{
 				mCurrentCutTime = 0f;

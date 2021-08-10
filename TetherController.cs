@@ -196,7 +196,17 @@ public class TetherController : MonoBehaviour
 
 	public bool TetherUnlocked => mTetherUnlocked;
 
-	public bool UnlimitedTethers => mUnlimitedTethers;
+	public bool UnlimitedTethers
+	{
+		get
+		{
+			if (GlobalOptions.Raw.GetBool("General.InfTethers") && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
+			{
+				return mUnlimitedTethers = true;
+			}
+			return mUnlimitedTethers = false;
+		}
+	}
 
 	public int NumAvailableTethers
 	{
