@@ -1,4 +1,4 @@
-This is a mod for Hardspace: Shipbreaker to enable some debugging features and cheats. Extract the release into your game's root folder and overwrite files when prompted to install. You can see all of the edits I've made by looking at the chagnes in [this commit](https://github.com/Torphedo/Shipbreaker-Cheats/commit/c40cda6b727d09995cb1d36b32882b85ea0ce254).
+This is a mod for Hardspace: Shipbreaker to enable some debugging features and cheats. Extract the release into your game's root folder and overwrite files when prompted to install. You can see all of the edits I've made by looking at the changes in [this commit](https://github.com/Torphedo/Shipbreaker-Cheats/commit/c40cda6b727d09995cb1d36b32882b85ea0ce254).
 
 # In-game Features
 
