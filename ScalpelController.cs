@@ -26,6 +26,10 @@ namespace BBI.Unity.Game
 
 		private const int kTargetTypeInvalid = 2;
 
+		private float mInstantMelt;
+
+		private float mIgnorePowerRating;
+
 		public IScalpelData Data => mData;
 
 		public ScalpelTarget Target { get; } = new ScalpelTarget();
@@ -159,12 +163,16 @@ namespace BBI.Unity.Game
 				{
 					Target.Part.TryGetPartMass(out mass);
 				}
-				float meltingTime = Target.Part.CuttingTargetable.GetMeltingTime(mass);
+				mInstantMelt = 0f;
+				if (!GlobalOptions.Raw.GetBool("General.InstantMelt") || SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
+				{
+					float num = (mInstantMelt = Target.Part.CuttingTargetable.GetMeltingTime(mass));
+				}
 				if (entityManager.TryGetComponent<VaporizationComponent>(entity, out var component))
 				{
 					component.ModifiedThisFrame = true;
 					component.VaporizationAmount += Time.deltaTime;
-					component.MaxVaporization = meltingTime;
+					component.MaxVaporization = mInstantMelt;
 					component.Type = VaporizationType.Scalpel;
 					entityManager.SetComponentData(entity, component);
 				}
@@ -174,7 +182,7 @@ namespace BBI.Unity.Game
 					{
 						ModifiedThisFrame = true,
 						VaporizationAmount = Time.deltaTime,
-						MaxVaporization = meltingTime,
+						MaxVaporization = mInstantMelt,
 						Type = VaporizationType.Scalpel
 					});
 				}
@@ -224,7 +232,12 @@ namespace BBI.Unity.Game
 
 		private bool IsValidTargetable(StructurePart part)
 		{
-			if (part != null && part.CuttingTargetable != null && part.CuttingTargetable.IsScalpelCuttable() && mData.PowerRating >= part.CuttingTargetable.PowerRating && EntityBlueprintComponent.IsValid(part.EntityBlueprintComponent))
+			mIgnorePowerRating = mData.PowerRating;
+			if (GlobalOptions.Raw.GetBool("General.IgnoreCutGrade") || SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
+			{
+				mIgnorePowerRating = 5f;
+			}
+			if (part != null && part.CuttingTargetable != null && part.CuttingTargetable.IsScalpelCuttable() && mIgnorePowerRating >= (float)part.CuttingTargetable.PowerRating && EntityBlueprintComponent.IsValid(part.EntityBlueprintComponent))
 			{
 				if (!(part.Group == null))
 				{
