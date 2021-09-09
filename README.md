@@ -1,4 +1,4 @@
-This is a mod for Hardspace: Shipbreaker to enable some debugging features and cheats. Extract the release into your game's root folder and overwrite files when prompted to install. You can see all of the edits I've made by looking at the changes in [this commit](https://github.com/Torphedo/Shipbreaker-Cheats/commit/c40cda6b727d09995cb1d36b32882b85ea0ce254).
+This is a mod for Hardspace: Shipbreaker to enable some debugging features and cheats. Extract the release into your game's root folder and overwrite files when prompted to install.
 
 # In-game Features
 
@@ -22,7 +22,7 @@ The "Mega Cutter" was a name created by BBI. The Mega Cutter has no animation, p
 
 # Config Options
 
-A few features couldn't be changed during gameplay for various technical reasons. As a workaround, I used BBI's great config file system to add these to a config file. The mod currently uses `config.ini`in the game's root folder. Change options in this file, then boot/reboot the game to see changes.
+A few features couldn't be changed during gameplay for various technical reasons. As a workaround, I used BBI's great config file system to add these to a config file. The mod currently uses `mod_config.ini`in the game's root folder. Change options in this file, then boot/reboot the game to see changes.
 
 - GodMode: Disables O2 drain, prevents the Cutter from damaging themselves or their suit
 - TroutMode: Stops the Cutter from being pushed by rushing air during violent decompressions
