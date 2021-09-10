@@ -31,5 +31,5 @@ A few features couldn't be changed during gameplay for various technical reasons
 - InfDurability: Stops all tools from losing durability
 - InfTethers: Sets the tether count to infinity
 - InfHeat: Stops the Stinger and Splitsaw from building up any heat
-- StingerMeltTime: Determines how long the Stinger will take to vaporize any object. If set to 0, it will revert to vanilla behaviour (melt time being dependent on mass)
+- StingerMeltTime: Determines how long the Stinger will take to vaporize any object. If set to -1, it will revert to vanilla behaviour (melt time being dependent on mass)
 - StingerCutGrade: Determines the Stinger's cut grade. Note that this will not affect the Splitsaw.
