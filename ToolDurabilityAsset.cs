@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Carbon.Audio;
 using Carbon.Audio.Unity;
-using Carbon.Core;
 using Unity.Entities;
 using UnityEngine;
 
@@ -17,7 +16,7 @@ namespace BBI.Unity.Game
 			private ToolType m_ToolType;
 
 			[SerializeField]
-			[WWiseObjectIDSelector(/*Could not decode attribute arguments.*/)]
+			[WWiseObjectIDSelector(WwiseGuidType.RTPC, true)]
 			private UnityWwiseObjectIDWrapper m_DurabilityAudioRTPC;
 
 			[SerializeField]
@@ -67,29 +66,9 @@ namespace BBI.Unity.Game
 
 			public ToolType ToolType => m_ToolType;
 
-			public WwiseShortID DurabilityAudioRTPC
-			{
-				get
-				{
-					//IL_0006: Unknown result type (might be due to invalid IL or missing references)
-					//IL_000b: Unknown result type (might be due to invalid IL or missing references)
-					//IL_000e: Unknown result type (might be due to invalid IL or missing references)
-					WwiseObjectIDWrapper wwiseObjectIDWrapper = ((UnityWwiseObjectIDWrapper)(ref m_DurabilityAudioRTPC)).get_WwiseObjectIDWrapper();
-					return ((WwiseObjectIDWrapper)(ref wwiseObjectIDWrapper)).get_ShortID();
-				}
-			}
+			public WwiseShortID DurabilityAudioRTPC => m_DurabilityAudioRTPC.WwiseObjectIDWrapper.ShortID;
 
-			public float DrainMultiplier
-			{
-				get
-				{
-					if (GlobalOptions.Raw.GetBool("General.InfDurability") && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
-					{
-						return m_DefaultDrainMultiplier = 0f;
-					}
-					return m_DefaultDrainMultiplier = 1f;
-				}
-			}
+			public float DrainMultiplier => m_DefaultDrainMultiplier;
 
 			public List<CutterDurabilityDamageDef> CutterDamageDefs => m_CutterDamageDefs;
 
@@ -157,39 +136,30 @@ namespace BBI.Unity.Game
 
 		public override void SetComponentData(EntityManager entityManager, Entity entity)
 		{
-			//IL_0055: Unknown result type (might be due to invalid IL or missing references)
-			//IL_005a: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00a3: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00cd: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00d2: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0118: Unknown result type (might be due to invalid IL or missing references)
 			DurabilityComponent durabilityComponent;
-			WwiseShortID durabilityAudioRTPC;
 			if (SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.Career && PlayerProfileService.Instance.Profile.StoredDurabilityMap.TryGetValue(Data.ToolType, out var value))
 			{
 				durabilityComponent = default(DurabilityComponent);
 				durabilityComponent.ToolType = value.ToolType;
-				durabilityAudioRTPC = Data.DurabilityAudioRTPC;
-				durabilityComponent.WwiseShortRawObjectID = ((WwiseShortID)(ref durabilityAudioRTPC)).get_ObjectID();
+				durabilityComponent.WwiseShortRawObjectID = Data.DurabilityAudioRTPC.ObjectID;
 				durabilityComponent.PreviousDurability = value.PreviousDurability;
 				durabilityComponent.CurrentDurability = value.CurrentDurability;
 				durabilityComponent.MaxDurability = value.MaxDurability;
 				DurabilityComponent durabilityComponent2 = durabilityComponent;
 				PlayerProfileService.Instance.Profile.UpdateStoredDurability(durabilityComponent2);
-				((EntityManager)(ref entityManager)).SetComponentData<DurabilityComponent>(entity, durabilityComponent2);
+				entityManager.SetComponentData(entity, durabilityComponent2);
 			}
 			else
 			{
 				durabilityComponent = default(DurabilityComponent);
 				durabilityComponent.ToolType = Data.ToolType;
-				durabilityAudioRTPC = Data.DurabilityAudioRTPC;
-				durabilityComponent.WwiseShortRawObjectID = ((WwiseShortID)(ref durabilityAudioRTPC)).get_ObjectID();
+				durabilityComponent.WwiseShortRawObjectID = Data.DurabilityAudioRTPC.ObjectID;
 				durabilityComponent.PreviousDurability = 100f;
 				durabilityComponent.CurrentDurability = 100f;
 				durabilityComponent.MaxDurability = 100f;
 				DurabilityComponent durabilityComponent3 = durabilityComponent;
 				PlayerProfileService.Instance.Profile.UpdateStoredDurability(durabilityComponent3);
-				((EntityManager)(ref entityManager)).SetComponentData<DurabilityComponent>(entity, durabilityComponent3);
+				entityManager.SetComponentData(entity, durabilityComponent3);
 			}
 		}
 

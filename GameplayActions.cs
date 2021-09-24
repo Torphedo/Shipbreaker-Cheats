@@ -22,25 +22,13 @@ namespace BBI.Unity.Game
 
 			public Mouse Mouse;
 
-			public GameplayBindings(GameplayActionSet action, InputControlType pcControl = 0, Key[] keyboard = null, Mouse mouse = 0, InputControlType ps4Control = 0, InputControlType xboxControl = 0)
+			public GameplayBindings(GameplayActionSet action, InputControlType pcControl = InputControlType.None, Key[] keyboard = null, Mouse mouse = Mouse.None, InputControlType ps4Control = InputControlType.None, InputControlType xboxControl = InputControlType.None)
 			{
-				//IL_0008: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0009: Unknown result type (might be due to invalid IL or missing references)
-				//IL_000f: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0013: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0017: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0018: Unknown result type (might be due to invalid IL or missing references)
-				//IL_001e: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0022: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0026: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0027: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0043: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0045: Unknown result type (might be due to invalid IL or missing references)
 				Action = action;
 				PCControl = pcControl;
-				PS4Control = (((int)ps4Control == 0) ? pcControl : ps4Control);
-				XboxControl = (((int)xboxControl == 0) ? pcControl : xboxControl);
-				Keyboard = (Key[])((keyboard == null || keyboard.Length == 0) ? ((Array)new Key[1]) : ((Array)keyboard));
+				PS4Control = ((ps4Control == InputControlType.None) ? pcControl : ps4Control);
+				XboxControl = ((xboxControl == InputControlType.None) ? pcControl : xboxControl);
+				Keyboard = ((keyboard == null || keyboard.Length == 0) ? new Key[1] : keyboard);
 				Mouse = mouse;
 			}
 		}
@@ -381,7 +369,6 @@ namespace BBI.Unity.Game
 		public float ButtonHoldThreshold => 0.4f;
 
 		public GameplayActions(bool enableAZERTY)
-			: this()
 		{
 			LoadBindings(GameplayActionSet.ThrustMoveForward);
 			LoadBindings(GameplayActionSet.ThrustMoveBackward);
@@ -438,42 +425,31 @@ namespace BBI.Unity.Game
 			LoadBindings(GameplayActionSet.RotateBodyDown);
 			LoadBindings(GameplayActionSet.RotateBodyRight);
 			LoadBindings(GameplayActionSet.RotateBodyLeft);
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ToggleFramerate, (InputControlType)0, (Key[])(object)new Key[1] { (Key)17 }, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DebugRefillOxygen, (InputControlType)0, (Key[])(object)new Key[1] { (Key)14 }, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DebugRefillThrusters, (InputControlType)0, (Key[])(object)new Key[1] { (Key)15 }, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.GlassMode, (InputControlType)0, (Key[])(object)new Key[1] { (Key)16 }, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DebugMegaCutPlayer, (InputControlType)0, (Key[])(object)new Key[1] { (Key)18 }, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ToggleDebugMenu, (InputControlType)0, (Key[])(object)new Key[1] { (Key)19 }, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ToggleObjectDebugInfo, (InputControlType)0, (Key[])(object)new Key[1] { (Key)20 }, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ShowDebugControls, (InputControlType)0, (Key[])(object)new Key[1] { (Key)23 }, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DebugResetTimeScale, (InputControlType)0, (Key[])(object)new Key[1] { (Key)84 }, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DebugPauseTimeScale, (InputControlType)0, (Key[])(object)new Key[1] { (Key)83 }, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DebugIncrementTimeScale, (InputControlType)0, (Key[])(object)new Key[1] { (Key)85 }, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DebugDecrementTimeScale, (InputControlType)0, (Key[])(object)new Key[1] { (Key)86 }, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.EquipmentSelectionExtra01, (InputControlType)22, (Key[])(object)new Key[1] { (Key)66 }, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.Flip, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.Zoom, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ToggleStickyGrab, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ToggleObjectives, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DataLog, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.RotateHeadUp, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.RotateHeadDown, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.RotateHeadLeft, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.RotateHeadRight, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.CycleEquipmentMode, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.EquipmentSpecial, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ReleaseGrab, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.GrappleCancel, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.RetractTethers, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.CancelTether, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ChangeEquipment, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ModifiedRollBodyLeft, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ModifiedRollBodyRight, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ModifiedRoll, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.Reorient, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.CancelCut, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ClearTethers, (InputControlType)12, (Key[])(object)new Key[1] { (Key)29 }, (Mouse)0, (InputControlType)0, (InputControlType)0));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.UnequipCurrentEquipment, (InputControlType)0, null, (Mouse)0, (InputControlType)0, (InputControlType)0));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ToggleFramerate, InputControlType.None, new Key[1] { Key.F4 }));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.EquipmentSelectionExtra01, InputControlType.Action4, new Key[1] { Key.Tab }));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.Flip));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.Zoom));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ToggleStickyGrab));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ToggleObjectives));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DataLog));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.RotateHeadUp));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.RotateHeadDown));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.RotateHeadLeft));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.RotateHeadRight));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.CycleEquipmentMode));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.EquipmentSpecial));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ReleaseGrab));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.GrappleCancel));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.RetractTethers));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.CancelTether));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ChangeEquipment));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ModifiedRollBodyLeft));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ModifiedRollBodyRight));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ModifiedRoll));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.Reorient));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.CancelCut));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ClearTethers, InputControlType.DPadDown, new Key[1] { Key.Key3 }));
+			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.UnequipCurrentEquipment));
 			if (enableAZERTY)
 			{
 				for (int i = 0; i < mDefaultBindings.Count; i++)
@@ -485,112 +461,112 @@ namespace BBI.Unity.Game
 					mDefaultBindings[i] = value;
 				}
 			}
-			RightHandGrab = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.RightHandGrab.ToString());
-			LeftHandGrab = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.LeftHandGrab.ToString());
-			ReleaseGrab = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ReleaseGrab.ToString());
-			Interact = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.Interact.ToString());
-			Lunge = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.Pull.ToString());
-			Push = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.Push.ToString());
-			Throw = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.Throw.ToString());
-			SwingLeft = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.SwingLeft.ToString());
-			SwingRight = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.SwingRight.ToString());
-			SwingUp = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.SwingUp.ToString());
-			SwingDown = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.SwingDown.ToString());
-			SwingHorizontal = ((PlayerActionSet)this).CreateOneAxisPlayerAction(SwingLeft, SwingRight);
-			SwingVertical = ((PlayerActionSet)this).CreateOneAxisPlayerAction(SwingDown, SwingUp);
-			ActivateScanner = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ActivateScanner.ToString());
-			ScanObject = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ScanObject.ToString());
-			ScanCycleLeft = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ScanCycleLeft.ToString());
-			ScanCycleRight = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ScanCycleRight.ToString());
-			GrappleFire = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.GrappleFire.ToString());
-			ChangeEquipment = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ChangeEquipment.ToString());
-			RetractionModifier = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.RetractionModifier.ToString());
-			GrappleCancel = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.GrappleCancel.ToString());
-			UnequipCurrentEquipment = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.UnequipCurrentEquipment.ToString());
-			SelectCutter = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.SelectCutter.ToString());
-			ClearTethers = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ClearTethers.ToString());
-			ToggleFlashlight = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ToggleFlashlight.ToString());
-			SelectGrapple = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.SelectGrapple.ToString());
-			EquipmentSelectionExtra01 = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.EquipmentSelectionExtra01.ToString());
-			SelectDemoCharge = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.SelectDemoCharge.ToString());
-			DemoChargeFire = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.DemoChargeFire.ToString());
-			DemoChargeAltFire = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.DemoChargeAltFire.ToString());
-			PlaceTether = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.PlaceTether.ToString());
-			RetractTethers = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.RetractTethers.ToString());
-			RecallTethers = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.RecallTethers.ToString());
-			CancelTether = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.CancelTether.ToString());
-			Start = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.Start.ToString());
-			ReturnToMenu = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ReturnToMenu.ToString());
-			Pause = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.Pause.ToString());
-			InvertAxes = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.InvertAxes.ToString());
-			GlassMode = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.GlassMode.ToString());
-			ToggleFramerate = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ToggleFramerate.ToString());
-			WorkOrder = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.WorkOrder.ToString());
-			PlayAudioLog = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.PlayAudioLog.ToString());
-			Decline = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.Decline.ToString());
-			RollBodyLeft = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.RollBodyLeft.ToString());
-			RollBodyRight = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.RollBodyRight.ToString());
-			mModifiedRollBodyLeft = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ModifiedRollBodyLeft.ToString());
-			mModifiedRollBodyRight = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ModifiedRollBodyRight.ToString());
-			ModifiedRollBody = ((PlayerActionSet)this).CreateOneAxisPlayerAction(mModifiedRollBodyLeft, mModifiedRollBodyRight);
-			ModifedRoll = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ModifiedRoll.ToString());
-			RotateBodyUp = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.RotateBodyUp.ToString());
-			RotateBodyDown = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.RotateBodyDown.ToString());
-			RotateBodyLeft = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.RotateBodyLeft.ToString());
-			RotateBodyRight = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.RotateBodyRight.ToString());
-			RotateBody = ((PlayerActionSet)this).CreateTwoAxisPlayerAction(RotateBodyLeft, RotateBodyRight, RotateBodyDown, RotateBodyUp);
-			Reorient = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.Reorient.ToString());
-			LateralMoveUp = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.LateralMoveUp.ToString());
-			LateralMoveDown = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.LateralMoveDown.ToString());
-			LateralMoveLeft = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.LateralMoveLeft.ToString());
-			LateralMoveRight = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.LateralMoveRight.ToString());
-			LateralMove = ((PlayerActionSet)this).CreateTwoAxisPlayerAction(LateralMoveLeft, LateralMoveRight, LateralMoveDown, LateralMoveUp);
-			ThrustMoveForward = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ThrustMoveForward.ToString());
-			ThrustMoveBackward = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ThrustMoveBackward.ToString());
-			ThrustMoveUp = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ThrustMoveUp.ToString());
-			ThrustMoveDown = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ThrustMoveDown.ToString());
-			ThrustMoveLeft = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ThrustMoveLeft.ToString());
-			ThrustMoveRight = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ThrustMoveRight.ToString());
-			ThrustDepth = ((PlayerActionSet)this).CreateOneAxisPlayerAction(ThrustMoveBackward, ThrustMoveForward);
-			ThrustVertical = ((PlayerActionSet)this).CreateOneAxisPlayerAction(ThrustMoveDown, ThrustMoveUp);
-			ThrustHorizontal = ((PlayerActionSet)this).CreateOneAxisPlayerAction(ThrustMoveLeft, ThrustMoveRight);
-			ThrustBrakeLeft = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ThrustBrakeLeft.ToString());
-			ThrustBrakeRight = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ThrustBrakeRight.ToString());
-			CutterFire = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.CutterFire.ToString());
-			CutterAltFire = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.CutterAltFire.ToString());
-			CancelCut = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.CancelCut.ToString());
-			ToolMenu = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ToolMenu.ToString());
-			ToolMode = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ToolMode.ToString());
-			ToolNavUp = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ToolNavUp.ToString());
-			ToolNavDown = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ToolNavDown.ToString());
-			ToolNavRight = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ToolNavRight.ToString());
-			ToolNavLeft = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ToolNavLeft.ToString());
-			Flip = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.Flip.ToString());
-			Zoom = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.Zoom.ToString());
-			ToggleObjectives = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ToggleObjectives.ToString());
-			DataLog = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.DataLog.ToString());
-			CycleEquipmentMode = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.CycleEquipmentMode.ToString());
-			EquipmentSpecial = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.EquipmentSpecial.ToString());
-			ToggleStickyGrab = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ToggleStickyGrab.ToString());
-			mRotateHeadUp = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.RotateHeadUp.ToString());
-			mRotateHeadDown = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.RotateHeadDown.ToString());
-			mRotateHeadLeft = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.RotateHeadLeft.ToString());
-			mRotateHeadRight = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.RotateHeadRight.ToString());
-			RotateHead = ((PlayerActionSet)this).CreateTwoAxisPlayerAction(mRotateHeadLeft, mRotateHeadRight, mRotateHeadDown, mRotateHeadUp);
-			ToggleObjectDebugInfo = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ToggleObjectDebugInfo.ToString());
-			DebugIncrementTimeScale = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.DebugIncrementTimeScale.ToString());
-			DebugDecrementTimeScale = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.DebugDecrementTimeScale.ToString());
-			DebugResetTimeScale = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.DebugResetTimeScale.ToString());
-			DebugPauseTimeScale = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.DebugPauseTimeScale.ToString());
-			DebugRefillOxygen = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.DebugRefillOxygen.ToString());
-			DebugRefillThrusters = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.DebugRefillThrusters.ToString());
-			ShowDebugControls = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ShowDebugControls.ToString());
-			DebugSaveGame = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.DebugSaveGame.ToString());
-			DebugLoadGame = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.DebugLoadGame.ToString());
-			DebugMegaCutPlayer = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.DebugMegaCutPlayer.ToString());
-			DebugMegaCutAll = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.DebugMegaCutAll.ToString());
-			ToggleDebugMenu = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ToggleDebugMenu.ToString());
-			ToggleBuildInfo = ((PlayerActionSet)this).CreatePlayerAction(GameplayActionSet.ToggleBuildInfo.ToString());
+			RightHandGrab = CreatePlayerAction(GameplayActionSet.RightHandGrab.ToString());
+			LeftHandGrab = CreatePlayerAction(GameplayActionSet.LeftHandGrab.ToString());
+			ReleaseGrab = CreatePlayerAction(GameplayActionSet.ReleaseGrab.ToString());
+			Interact = CreatePlayerAction(GameplayActionSet.Interact.ToString());
+			Lunge = CreatePlayerAction(GameplayActionSet.Pull.ToString());
+			Push = CreatePlayerAction(GameplayActionSet.Push.ToString());
+			Throw = CreatePlayerAction(GameplayActionSet.Throw.ToString());
+			SwingLeft = CreatePlayerAction(GameplayActionSet.SwingLeft.ToString());
+			SwingRight = CreatePlayerAction(GameplayActionSet.SwingRight.ToString());
+			SwingUp = CreatePlayerAction(GameplayActionSet.SwingUp.ToString());
+			SwingDown = CreatePlayerAction(GameplayActionSet.SwingDown.ToString());
+			SwingHorizontal = CreateOneAxisPlayerAction(SwingLeft, SwingRight);
+			SwingVertical = CreateOneAxisPlayerAction(SwingDown, SwingUp);
+			ActivateScanner = CreatePlayerAction(GameplayActionSet.ActivateScanner.ToString());
+			ScanObject = CreatePlayerAction(GameplayActionSet.ScanObject.ToString());
+			ScanCycleLeft = CreatePlayerAction(GameplayActionSet.ScanCycleLeft.ToString());
+			ScanCycleRight = CreatePlayerAction(GameplayActionSet.ScanCycleRight.ToString());
+			GrappleFire = CreatePlayerAction(GameplayActionSet.GrappleFire.ToString());
+			ChangeEquipment = CreatePlayerAction(GameplayActionSet.ChangeEquipment.ToString());
+			RetractionModifier = CreatePlayerAction(GameplayActionSet.RetractionModifier.ToString());
+			GrappleCancel = CreatePlayerAction(GameplayActionSet.GrappleCancel.ToString());
+			UnequipCurrentEquipment = CreatePlayerAction(GameplayActionSet.UnequipCurrentEquipment.ToString());
+			SelectCutter = CreatePlayerAction(GameplayActionSet.SelectCutter.ToString());
+			ClearTethers = CreatePlayerAction(GameplayActionSet.ClearTethers.ToString());
+			ToggleFlashlight = CreatePlayerAction(GameplayActionSet.ToggleFlashlight.ToString());
+			SelectGrapple = CreatePlayerAction(GameplayActionSet.SelectGrapple.ToString());
+			EquipmentSelectionExtra01 = CreatePlayerAction(GameplayActionSet.EquipmentSelectionExtra01.ToString());
+			SelectDemoCharge = CreatePlayerAction(GameplayActionSet.SelectDemoCharge.ToString());
+			DemoChargeFire = CreatePlayerAction(GameplayActionSet.DemoChargeFire.ToString());
+			DemoChargeAltFire = CreatePlayerAction(GameplayActionSet.DemoChargeAltFire.ToString());
+			PlaceTether = CreatePlayerAction(GameplayActionSet.PlaceTether.ToString());
+			RetractTethers = CreatePlayerAction(GameplayActionSet.RetractTethers.ToString());
+			RecallTethers = CreatePlayerAction(GameplayActionSet.RecallTethers.ToString());
+			CancelTether = CreatePlayerAction(GameplayActionSet.CancelTether.ToString());
+			Start = CreatePlayerAction(GameplayActionSet.Start.ToString());
+			ReturnToMenu = CreatePlayerAction(GameplayActionSet.ReturnToMenu.ToString());
+			Pause = CreatePlayerAction(GameplayActionSet.Pause.ToString());
+			InvertAxes = CreatePlayerAction(GameplayActionSet.InvertAxes.ToString());
+			GlassMode = CreatePlayerAction(GameplayActionSet.GlassMode.ToString());
+			ToggleFramerate = CreatePlayerAction(GameplayActionSet.ToggleFramerate.ToString());
+			WorkOrder = CreatePlayerAction(GameplayActionSet.WorkOrder.ToString());
+			PlayAudioLog = CreatePlayerAction(GameplayActionSet.PlayAudioLog.ToString());
+			Decline = CreatePlayerAction(GameplayActionSet.Decline.ToString());
+			RollBodyLeft = CreatePlayerAction(GameplayActionSet.RollBodyLeft.ToString());
+			RollBodyRight = CreatePlayerAction(GameplayActionSet.RollBodyRight.ToString());
+			mModifiedRollBodyLeft = CreatePlayerAction(GameplayActionSet.ModifiedRollBodyLeft.ToString());
+			mModifiedRollBodyRight = CreatePlayerAction(GameplayActionSet.ModifiedRollBodyRight.ToString());
+			ModifiedRollBody = CreateOneAxisPlayerAction(mModifiedRollBodyLeft, mModifiedRollBodyRight);
+			ModifedRoll = CreatePlayerAction(GameplayActionSet.ModifiedRoll.ToString());
+			RotateBodyUp = CreatePlayerAction(GameplayActionSet.RotateBodyUp.ToString());
+			RotateBodyDown = CreatePlayerAction(GameplayActionSet.RotateBodyDown.ToString());
+			RotateBodyLeft = CreatePlayerAction(GameplayActionSet.RotateBodyLeft.ToString());
+			RotateBodyRight = CreatePlayerAction(GameplayActionSet.RotateBodyRight.ToString());
+			RotateBody = CreateTwoAxisPlayerAction(RotateBodyLeft, RotateBodyRight, RotateBodyDown, RotateBodyUp);
+			Reorient = CreatePlayerAction(GameplayActionSet.Reorient.ToString());
+			LateralMoveUp = CreatePlayerAction(GameplayActionSet.LateralMoveUp.ToString());
+			LateralMoveDown = CreatePlayerAction(GameplayActionSet.LateralMoveDown.ToString());
+			LateralMoveLeft = CreatePlayerAction(GameplayActionSet.LateralMoveLeft.ToString());
+			LateralMoveRight = CreatePlayerAction(GameplayActionSet.LateralMoveRight.ToString());
+			LateralMove = CreateTwoAxisPlayerAction(LateralMoveLeft, LateralMoveRight, LateralMoveDown, LateralMoveUp);
+			ThrustMoveForward = CreatePlayerAction(GameplayActionSet.ThrustMoveForward.ToString());
+			ThrustMoveBackward = CreatePlayerAction(GameplayActionSet.ThrustMoveBackward.ToString());
+			ThrustMoveUp = CreatePlayerAction(GameplayActionSet.ThrustMoveUp.ToString());
+			ThrustMoveDown = CreatePlayerAction(GameplayActionSet.ThrustMoveDown.ToString());
+			ThrustMoveLeft = CreatePlayerAction(GameplayActionSet.ThrustMoveLeft.ToString());
+			ThrustMoveRight = CreatePlayerAction(GameplayActionSet.ThrustMoveRight.ToString());
+			ThrustDepth = CreateOneAxisPlayerAction(ThrustMoveBackward, ThrustMoveForward);
+			ThrustVertical = CreateOneAxisPlayerAction(ThrustMoveDown, ThrustMoveUp);
+			ThrustHorizontal = CreateOneAxisPlayerAction(ThrustMoveLeft, ThrustMoveRight);
+			ThrustBrakeLeft = CreatePlayerAction(GameplayActionSet.ThrustBrakeLeft.ToString());
+			ThrustBrakeRight = CreatePlayerAction(GameplayActionSet.ThrustBrakeRight.ToString());
+			CutterFire = CreatePlayerAction(GameplayActionSet.CutterFire.ToString());
+			CutterAltFire = CreatePlayerAction(GameplayActionSet.CutterAltFire.ToString());
+			CancelCut = CreatePlayerAction(GameplayActionSet.CancelCut.ToString());
+			ToolMenu = CreatePlayerAction(GameplayActionSet.ToolMenu.ToString());
+			ToolMode = CreatePlayerAction(GameplayActionSet.ToolMode.ToString());
+			ToolNavUp = CreatePlayerAction(GameplayActionSet.ToolNavUp.ToString());
+			ToolNavDown = CreatePlayerAction(GameplayActionSet.ToolNavDown.ToString());
+			ToolNavRight = CreatePlayerAction(GameplayActionSet.ToolNavRight.ToString());
+			ToolNavLeft = CreatePlayerAction(GameplayActionSet.ToolNavLeft.ToString());
+			Flip = CreatePlayerAction(GameplayActionSet.Flip.ToString());
+			Zoom = CreatePlayerAction(GameplayActionSet.Zoom.ToString());
+			ToggleObjectives = CreatePlayerAction(GameplayActionSet.ToggleObjectives.ToString());
+			DataLog = CreatePlayerAction(GameplayActionSet.DataLog.ToString());
+			CycleEquipmentMode = CreatePlayerAction(GameplayActionSet.CycleEquipmentMode.ToString());
+			EquipmentSpecial = CreatePlayerAction(GameplayActionSet.EquipmentSpecial.ToString());
+			ToggleStickyGrab = CreatePlayerAction(GameplayActionSet.ToggleStickyGrab.ToString());
+			mRotateHeadUp = CreatePlayerAction(GameplayActionSet.RotateHeadUp.ToString());
+			mRotateHeadDown = CreatePlayerAction(GameplayActionSet.RotateHeadDown.ToString());
+			mRotateHeadLeft = CreatePlayerAction(GameplayActionSet.RotateHeadLeft.ToString());
+			mRotateHeadRight = CreatePlayerAction(GameplayActionSet.RotateHeadRight.ToString());
+			RotateHead = CreateTwoAxisPlayerAction(mRotateHeadLeft, mRotateHeadRight, mRotateHeadDown, mRotateHeadUp);
+			ToggleObjectDebugInfo = CreatePlayerAction(GameplayActionSet.ToggleObjectDebugInfo.ToString());
+			DebugIncrementTimeScale = CreatePlayerAction(GameplayActionSet.DebugIncrementTimeScale.ToString());
+			DebugDecrementTimeScale = CreatePlayerAction(GameplayActionSet.DebugDecrementTimeScale.ToString());
+			DebugResetTimeScale = CreatePlayerAction(GameplayActionSet.DebugResetTimeScale.ToString());
+			DebugPauseTimeScale = CreatePlayerAction(GameplayActionSet.DebugPauseTimeScale.ToString());
+			DebugRefillOxygen = CreatePlayerAction(GameplayActionSet.DebugRefillOxygen.ToString());
+			DebugRefillThrusters = CreatePlayerAction(GameplayActionSet.DebugRefillThrusters.ToString());
+			ShowDebugControls = CreatePlayerAction(GameplayActionSet.ShowDebugControls.ToString());
+			DebugSaveGame = CreatePlayerAction(GameplayActionSet.DebugSaveGame.ToString());
+			DebugLoadGame = CreatePlayerAction(GameplayActionSet.DebugLoadGame.ToString());
+			DebugMegaCutPlayer = CreatePlayerAction(GameplayActionSet.DebugMegaCutPlayer.ToString());
+			DebugMegaCutAll = CreatePlayerAction(GameplayActionSet.DebugMegaCutAll.ToString());
+			ToggleDebugMenu = CreatePlayerAction(GameplayActionSet.ToggleDebugMenu.ToString());
+			ToggleBuildInfo = CreatePlayerAction(GameplayActionSet.ToggleBuildInfo.ToString());
 		}
 
 		public static GameplayActions CreateWithDefaultBindings(bool enableAZERTY)
@@ -598,60 +574,43 @@ namespace BBI.Unity.Game
 			GameplayActions gameplayActions = new GameplayActions(enableAZERTY);
 			gameplayActions.AddDefaultBindings();
 			gameplayActions.AddLoadedBindings();
-			((PlayerActionSet)gameplayActions).get_ListenOptions().IncludeUnknownControllers = true;
-			((PlayerActionSet)gameplayActions).get_ListenOptions().OnBindingFound = delegate(PlayerAction action, BindingSource binding)
+			gameplayActions.ListenOptions.IncludeUnknownControllers = true;
+			gameplayActions.ListenOptions.OnBindingFound = delegate(PlayerAction action, BindingSource binding)
 			{
-				//IL_000c: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0016: Expected O, but got Unknown
-				if (binding == (BindingSource)new KeyBindingSource((Key[])(object)new Key[1] { (Key)13 }))
+				if (binding == new KeyBindingSource(Key.Escape))
 				{
 					action.StopListeningForBinding();
 					return false;
 				}
 				return true;
 			};
-			BindingListenOptions listenOptions = ((PlayerActionSet)gameplayActions).get_ListenOptions();
-			listenOptions.OnBindingAdded = (Action<PlayerAction, BindingSource>)Delegate.Combine(listenOptions.OnBindingAdded, (Action<PlayerAction, BindingSource>)delegate(PlayerAction action, BindingSource binding)
+			BindingListenOptions bindingListenOptions = gameplayActions.ListenOptions;
+			bindingListenOptions.OnBindingAdded = (Action<PlayerAction, BindingSource>)Delegate.Combine(bindingListenOptions.OnBindingAdded, (Action<PlayerAction, BindingSource>)delegate(PlayerAction action, BindingSource binding)
 			{
-				Debug.Log((object)("Binding added... " + binding.get_DeviceName() + ": " + binding.get_Name()));
+				Debug.Log("Binding added... " + binding.DeviceName + ": " + binding.Name);
 			});
-			BindingListenOptions listenOptions2 = ((PlayerActionSet)gameplayActions).get_ListenOptions();
-			listenOptions2.OnBindingRejected = (Action<PlayerAction, BindingSource, BindingSourceRejectionType>)Delegate.Combine(listenOptions2.OnBindingRejected, (Action<PlayerAction, BindingSource, BindingSourceRejectionType>)delegate(PlayerAction action, BindingSource binding, BindingSourceRejectionType reason)
+			BindingListenOptions bindingListenOptions2 = gameplayActions.ListenOptions;
+			bindingListenOptions2.OnBindingRejected = (Action<PlayerAction, BindingSource, BindingSourceRejectionType>)Delegate.Combine(bindingListenOptions2.OnBindingRejected, (Action<PlayerAction, BindingSource, BindingSourceRejectionType>)delegate(PlayerAction action, BindingSource binding, BindingSourceRejectionType reason)
 			{
-				//IL_0005: Unknown result type (might be due to invalid IL or missing references)
-				Debug.Log((object)("Binding rejected... " + reason));
+				Debug.Log("Binding rejected... " + reason);
 			});
 			return gameplayActions;
 		}
 
 		public void AddDefaultBindings()
 		{
-			//IL_0044: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0055: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0066: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0077: Unknown result type (might be due to invalid IL or missing references)
 			for (int i = 0; i < mDefaultBindings.Count; i++)
 			{
 				string text = mDefaultBindings[i].Action.ToString();
 				if (IsValidAction(text))
 				{
-					AddBinding(((PlayerActionSet)this).get_Item(text), mDefaultBindings[i].PCControl, mDefaultBindings[i].PS4Control, mDefaultBindings[i].XboxControl, mDefaultBindings[i].Mouse, mDefaultBindings[i].Keyboard, isDefaultBinding: true);
+					AddBinding(base[text], mDefaultBindings[i].PCControl, mDefaultBindings[i].PS4Control, mDefaultBindings[i].XboxControl, mDefaultBindings[i].Mouse, mDefaultBindings[i].Keyboard, isDefaultBinding: true);
 				}
 			}
 		}
 
 		public void AddLoadedBindings()
 		{
-			//IL_004b: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0054: Unknown result type (might be due to invalid IL or missing references)
-			//IL_005e: Invalid comparison between Unknown and I4
-			//IL_006c: Unknown result type (might be due to invalid IL or missing references)
-			//IL_007a: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0084: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0092: Unknown result type (might be due to invalid IL or missing references)
-			//IL_009c: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00aa: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00b4: Unknown result type (might be due to invalid IL or missing references)
 			for (int i = 0; i < mLoadedBindings.Count; i++)
 			{
 				string text = mLoadedBindings[i].Action.ToString();
@@ -659,81 +618,55 @@ namespace BBI.Unity.Game
 				{
 					continue;
 				}
-				PlayerAction val = ((PlayerActionSet)this).get_Item(text);
+				PlayerAction playerAction = base[text];
 				GameplayBindings gameplayBindings = mLoadedBindings[i];
-				if ((int)gameplayBindings.PCControl != 0)
+				if (gameplayBindings.PCControl != 0)
 				{
-					if ((int)gameplayBindings.PCControl == 520)
+					if (gameplayBindings.PCControl == InputControlType.Count)
 					{
-						val.AddDefaultBinding((InputControlType)0);
+						playerAction.AddDefaultBinding(InputControlType.None);
 					}
 					else
 					{
-						val.AddDefaultBinding(gameplayBindings.PCControl);
+						playerAction.AddDefaultBinding(gameplayBindings.PCControl);
 					}
 				}
-				else if ((int)gameplayBindings.PS4Control != 0)
+				else if (gameplayBindings.PS4Control != 0)
 				{
-					val.AddDefaultBinding(gameplayBindings.PS4Control);
+					playerAction.AddDefaultBinding(gameplayBindings.PS4Control);
 				}
-				else if ((int)gameplayBindings.XboxControl != 0)
+				else if (gameplayBindings.XboxControl != 0)
 				{
-					val.AddDefaultBinding(gameplayBindings.XboxControl);
+					playerAction.AddDefaultBinding(gameplayBindings.XboxControl);
 				}
-				else if ((int)gameplayBindings.Mouse != 0)
+				else if (gameplayBindings.Mouse != 0)
 				{
-					val.AddDefaultBinding(gameplayBindings.Mouse);
+					playerAction.AddDefaultBinding(gameplayBindings.Mouse);
 				}
 				else
 				{
-					val.AddDefaultBinding(gameplayBindings.Keyboard);
+					playerAction.AddDefaultBinding(gameplayBindings.Keyboard);
 				}
 			}
 		}
 
 		public void AddBinding(PlayerAction action, InputControlType pc, InputControlType ps4, InputControlType xbox, Mouse mouse, Key[] keyboard, bool isDefaultBinding)
 		{
-			//IL_0004: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0008: Unknown result type (might be due to invalid IL or missing references)
-			//IL_000e: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0012: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0018: Unknown result type (might be due to invalid IL or missing references)
-			//IL_001d: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0024: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0029: Unknown result type (might be due to invalid IL or missing references)
-			//IL_003d: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0041: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0042: Unknown result type (might be due to invalid IL or missing references)
-			//IL_004c: Expected O, but got Unknown
-			//IL_004d: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0051: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0052: Unknown result type (might be due to invalid IL or missing references)
-			//IL_005c: Expected O, but got Unknown
-			//IL_005d: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0062: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0064: Unknown result type (might be due to invalid IL or missing references)
-			//IL_006e: Expected O, but got Unknown
-			//IL_006f: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0074: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0076: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0080: Expected O, but got Unknown
-			//IL_0088: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0092: Expected O, but got Unknown
 			if (isDefaultBinding)
 			{
-				if ((int)pc != 0)
+				if (pc != 0)
 				{
 					action.AddDefaultBinding(pc);
 				}
-				if ((int)ps4 != 0)
+				if (ps4 != 0)
 				{
 					action.AddDefaultBinding(ps4);
 				}
-				if ((int)xbox != 0)
+				if (xbox != 0)
 				{
 					action.AddDefaultBinding(xbox);
 				}
-				if ((int)mouse != 0)
+				if (mouse != 0)
 				{
 					action.AddDefaultBinding(mouse);
 				}
@@ -744,25 +677,25 @@ namespace BBI.Unity.Game
 			}
 			else
 			{
-				if ((int)pc != 0)
+				if (pc != 0)
 				{
-					action.AddBinding((BindingSource)new DeviceBindingSource(pc));
+					action.AddBinding(new DeviceBindingSource(pc));
 				}
-				if ((int)ps4 != 0)
+				if (ps4 != 0)
 				{
-					action.AddBinding((BindingSource)new DeviceBindingSource(ps4));
+					action.AddBinding(new DeviceBindingSource(ps4));
 				}
-				if ((int)xbox != 0)
+				if (xbox != 0)
 				{
-					action.AddBinding((BindingSource)new DeviceBindingSource(xbox));
+					action.AddBinding(new DeviceBindingSource(xbox));
 				}
-				if ((int)mouse != 0)
+				if (mouse != 0)
 				{
-					action.AddBinding((BindingSource)new MouseBindingSource(mouse));
+					action.AddBinding(new MouseBindingSource(mouse));
 				}
 				if (keyboard != null)
 				{
-					action.AddBinding((BindingSource)new KeyBindingSource(keyboard));
+					action.AddBinding(new KeyBindingSource(keyboard));
 				}
 			}
 		}
@@ -774,17 +707,13 @@ namespace BBI.Unity.Game
 				string text = mDefaultBindings[i].Action.ToString();
 				if (IsValidAction(text))
 				{
-					((PlayerActionSet)this).get_Item(text).ResetBindings();
+					base[text].ResetBindings();
 				}
 			}
 		}
 
 		public void UpdateBindings(List<GameplayBindings> newBindings)
 		{
-			//IL_004b: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0051: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0057: Unknown result type (might be due to invalid IL or missing references)
-			//IL_005d: Unknown result type (might be due to invalid IL or missing references)
 			if (newBindings == null)
 			{
 				return;
@@ -795,12 +724,12 @@ namespace BBI.Unity.Game
 				GameplayBindings gameplayBindings = newBindings[i];
 				if (IsValidAction(text))
 				{
-					((PlayerActionSet)this).get_Item(text).ClearBindings();
-					AddBinding(((PlayerActionSet)this).get_Item(text), gameplayBindings.PCControl, gameplayBindings.PS4Control, gameplayBindings.XboxControl, gameplayBindings.Mouse, gameplayBindings.Keyboard, isDefaultBinding: false);
+					base[text].ClearBindings();
+					AddBinding(base[text], gameplayBindings.PCControl, gameplayBindings.PS4Control, gameplayBindings.XboxControl, gameplayBindings.Mouse, gameplayBindings.Keyboard, isDefaultBinding: false);
 				}
 				else
 				{
-					Debug.LogError((object)("Unbindable Action: " + text + " is not a valid action."));
+					Debug.LogError("Unbindable Action: " + text + " is not a valid action.");
 				}
 			}
 		}
@@ -826,18 +755,18 @@ namespace BBI.Unity.Game
 
 		public void SetRotateBodySensitivity(float xSensitivity, float ySensitivity)
 		{
-			((OneAxisInputControl)RotateBodyUp).set_Sensitivity(ySensitivity);
-			((OneAxisInputControl)RotateBodyDown).set_Sensitivity(ySensitivity);
-			((OneAxisInputControl)RotateBodyLeft).set_Sensitivity(xSensitivity);
-			((OneAxisInputControl)RotateBodyRight).set_Sensitivity(xSensitivity);
+			RotateBodyUp.Sensitivity = ySensitivity;
+			RotateBodyDown.Sensitivity = ySensitivity;
+			RotateBodyLeft.Sensitivity = xSensitivity;
+			RotateBodyRight.Sensitivity = xSensitivity;
 		}
 
 		public void SetRotateHeadSensitivity(float xSensitivity, float ySensitivity)
 		{
-			((OneAxisInputControl)mRotateHeadUp).set_Sensitivity(ySensitivity);
-			((OneAxisInputControl)mRotateHeadDown).set_Sensitivity(ySensitivity);
-			((OneAxisInputControl)mRotateHeadLeft).set_Sensitivity(xSensitivity);
-			((OneAxisInputControl)mRotateHeadRight).set_Sensitivity(xSensitivity);
+			mRotateHeadUp.Sensitivity = ySensitivity;
+			mRotateHeadDown.Sensitivity = ySensitivity;
+			mRotateHeadLeft.Sensitivity = xSensitivity;
+			mRotateHeadRight.Sensitivity = xSensitivity;
 		}
 
 		public void LoadBindings(GameplayActionSet set)
@@ -850,9 +779,9 @@ namespace BBI.Unity.Game
 
 		public bool ButtonHolding(PlayerAction action)
 		{
-			if (((OneAxisInputControl)action).get_LastState())
+			if (action.LastState && action.IsPressed)
 			{
-				return ((OneAxisInputControl)action).get_IsPressed();
+				return true;
 			}
 			return false;
 		}
