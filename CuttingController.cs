@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using BBI.Core.Utility;
+using Carbon.Core;
 using InControl;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -20,6 +21,8 @@ namespace BBI.Unity.Game
 
 			public CuttableInfo(StructurePart component, RaycastHit hitPoint, int rayIndexCenterOffset)
 			{
+				//IL_0008: Unknown result type (might be due to invalid IL or missing references)
+				//IL_0009: Unknown result type (might be due to invalid IL or missing references)
 				Component = component;
 				HitPoint = hitPoint;
 				RayIndexCenterOffset = rayIndexCenterOffset;
@@ -50,29 +53,41 @@ namespace BBI.Unity.Game
 
 			private Vector3 mLocalImpactDirection;
 
-			public Vector3 WorldHitPoint => Component.transform.TransformPoint(mLocalHitPoint);
+			public Vector3 WorldHitPoint => ((Component)Component).get_transform().TransformPoint(mLocalHitPoint);
 
-			public Vector3 WorldPlaneNormal => Component.transform.TransformDirection(mLocalPlaneNormal);
+			public Vector3 WorldPlaneNormal => ((Component)Component).get_transform().TransformDirection(mLocalPlaneNormal);
 
-			public Vector3 WorldPlaneTangent => Component.transform.TransformDirection(mLocalPlaneTangent);
+			public Vector3 WorldPlaneTangent => ((Component)Component).get_transform().TransformDirection(mLocalPlaneTangent);
 
-			public Vector3 ImpactDirection => Component.transform.TransformDirection(mLocalImpactDirection);
+			public Vector3 ImpactDirection => ((Component)Component).get_transform().TransformDirection(mLocalImpactDirection);
 
-			public bool DelayReached => Time.time - mStartTime >= mQueueDelay;
+			public bool DelayReached => Time.get_time() - mStartTime >= mQueueDelay;
 
 			public QueuedCuttable(StructurePart component, Vector3 worldHitPoint, Vector3 worldNormal, Vector3 worldTangent, ForceInfo splitForce, float splitGap, ForceInfo impactForce, Vector3 impactDirection, int powerRating, float queueDelay)
 			{
+				//IL_0013: Unknown result type (might be due to invalid IL or missing references)
+				//IL_0014: Unknown result type (might be due to invalid IL or missing references)
+				//IL_0019: Unknown result type (might be due to invalid IL or missing references)
+				//IL_002a: Unknown result type (might be due to invalid IL or missing references)
+				//IL_002b: Unknown result type (might be due to invalid IL or missing references)
+				//IL_0030: Unknown result type (might be due to invalid IL or missing references)
+				//IL_0041: Unknown result type (might be due to invalid IL or missing references)
+				//IL_0043: Unknown result type (might be due to invalid IL or missing references)
+				//IL_0048: Unknown result type (might be due to invalid IL or missing references)
+				//IL_0079: Unknown result type (might be due to invalid IL or missing references)
+				//IL_007b: Unknown result type (might be due to invalid IL or missing references)
+				//IL_0080: Unknown result type (might be due to invalid IL or missing references)
 				Component = component;
-				mLocalHitPoint = Component.transform.InverseTransformPoint(worldHitPoint);
-				mLocalPlaneNormal = Component.transform.InverseTransformDirection(worldNormal);
-				mLocalPlaneTangent = Component.transform.InverseTransformDirection(worldTangent);
+				mLocalHitPoint = ((Component)Component).get_transform().InverseTransformPoint(worldHitPoint);
+				mLocalPlaneNormal = ((Component)Component).get_transform().InverseTransformDirection(worldNormal);
+				mLocalPlaneTangent = ((Component)Component).get_transform().InverseTransformDirection(worldTangent);
 				SplitForce = splitForce;
 				SplitGap = splitGap;
 				ImpactForce = impactForce;
 				PowerRating = powerRating;
-				mLocalImpactDirection = Component.transform.InverseTransformDirection(impactDirection);
+				mLocalImpactDirection = ((Component)Component).get_transform().InverseTransformDirection(impactDirection);
 				mQueueDelay = queueDelay;
-				mStartTime = Time.time;
+				mStartTime = Time.get_time();
 			}
 		}
 
@@ -162,7 +177,7 @@ namespace BBI.Unity.Game
 
 		private ICutterData mData;
 
-		private Vector2 mCutRotation = Vector2.right;
+		private Vector2 mCutRotation = Vector2.get_right();
 
 		private List<CuttableInfo> mTargetBuffer = new List<CuttableInfo>();
 
@@ -176,9 +191,9 @@ namespace BBI.Unity.Game
 
 		private Plane mCutSplitPlaneBuffer;
 
-		private Plane[] mSplitPlanesArrayBuffer = new Plane[1];
+		private Plane[] mSplitPlanesArrayBuffer = (Plane[])(object)new Plane[1];
 
-		private Vector3[] mSplitTangentArrayBuffer = new Vector3[1];
+		private Vector3[] mSplitTangentArrayBuffer = (Vector3[])(object)new Vector3[1];
 
 		private float mCurrentCutTime;
 
@@ -245,30 +260,33 @@ namespace BBI.Unity.Game
 
 		private void Awake()
 		{
-			mCuttingToolController = GetComponentInParent<CuttingToolController>();
-			if (mCuttingToolController == null)
+			//IL_00ae: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00b3: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00b8: Unknown result type (might be due to invalid IL or missing references)
+			mCuttingToolController = ((Component)this).GetComponentInParent<CuttingToolController>();
+			if ((Object)(object)mCuttingToolController == (Object)null)
 			{
-				Debug.LogError("[CuttingTool] Unable to find CuttingToolController. Disabling.");
-				base.enabled = false;
+				Debug.LogError((object)"[CuttingTool] Unable to find CuttingToolController. Disabling.");
+				((Behaviour)this).set_enabled(false);
 				return;
 			}
 			EditorScenePlayer masterScenePlayer = EditorScenePlayer.MasterScenePlayer;
-			if (masterScenePlayer != null && masterScenePlayer.CutterAsset != null)
+			if ((Object)(object)masterScenePlayer != (Object)null && (Object)(object)masterScenePlayer.CutterAsset != (Object)null)
 			{
 				m_CutterAsset = masterScenePlayer.CutterAsset;
 			}
-			if (m_CutterAsset == null)
+			if ((Object)(object)m_CutterAsset == (Object)null)
 			{
-				Debug.LogError("Cutter Asset is missing.");
+				Debug.LogError((object)"Cutter Asset is missing.");
 			}
 			mData = new CutterBuffableData(m_CutterAsset.Data);
 			if (mData.BuffableCutExecution == null)
 			{
-				Debug.LogError("No buffable cut executions found.");
+				Debug.LogError((object)"No buffable cut executions found.");
 			}
 			mCutReloadInfo = default(CutReloadInfo);
 			CanBeUnequipped = true;
-			mCutRotation = Vector3.right;
+			mCutRotation = Vector2.op_Implicit(Vector3.get_right());
 			mEdgeDetectionPoints.Points = new EdgeDetectionPoint[(int)(mData.EdgeDetectionPointDensity * 100f)];
 		}
 
@@ -284,24 +302,27 @@ namespace BBI.Unity.Game
 
 		public void UpdateCutter()
 		{
+			//IL_009e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00a5: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00aa: Unknown result type (might be due to invalid IL or missing references)
 			TryGetTargetables(ref mTargetBuffer);
 			switch (mCuttingToolController.State)
 			{
-			case CuttingState.Ready:
-				HandleCuttingReady();
-				break;
 			case CuttingState.Disabled:
 				HandleCutterDisabled();
 				break;
+			case CuttingState.Ready:
+				HandleCuttingReady();
+				break;
 			}
-			if (IsCurrentEquipment && LynxControls.Instance.GameplayActions.CutterAltFire.WasPressed)
+			if (IsCurrentEquipment && ((OneAxisInputControl)LynxControls.Instance.GameplayActions.CutterAltFire).get_WasPressed())
 			{
-				if (m_CutterAsset.Data.SwapCutterAngle != null)
+				if ((Object)(object)m_CutterAsset.Data.SwapCutterAngle != (Object)null)
 				{
 					Main.EventSystem.Post(PlayerActionTrackerEvent.GetEvent(m_CutterAsset.Data.SwapCutterAngle));
 				}
 				mHorizontalCutNext = !mHorizontalCutNext;
-				mCutRotation = (mHorizontalCutNext ? Vector2.right : Vector2.up);
+				mCutRotation = (mHorizontalCutNext ? Vector2.get_right() : Vector2.get_up());
 			}
 		}
 
@@ -313,8 +334,7 @@ namespace BBI.Unity.Game
 
 		public void FixedUpdateCutter()
 		{
-			CuttingState state = mCuttingToolController.State;
-			if (state == CuttingState.Cutting)
+			if (mCuttingToolController.State == CuttingState.Cutting)
 			{
 				HandleCutting();
 			}
@@ -327,35 +347,45 @@ namespace BBI.Unity.Game
 
 		public void OnStateChanged(CuttingState newState)
 		{
+			//IL_003a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0041: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0046: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0077: Unknown result type (might be due to invalid IL or missing references)
+			//IL_007e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0083: Unknown result type (might be due to invalid IL or missing references)
 			switch (newState)
 			{
 			case CuttingState.Ready:
 				mTargetBuffer.Clear();
 				CanBeUnequipped = true;
-				InputManager.ActiveDevice.StopVibration();
-				mCutRotation = (mHorizontalCutNext ? Vector2.right : Vector2.up);
+				InputManager.get_ActiveDevice().StopVibration();
+				mCutRotation = (mHorizontalCutNext ? Vector2.get_right() : Vector2.get_up());
 				Main.EventSystem.Post(CuttingChangedEvent.GetEvent(CuttingChangedEvent.CutState.Ready));
-				break;
-			case CuttingState.Disabled:
-				InputManager.ActiveDevice.StopVibration();
-				CanBeUnequipped = true;
-				Main.EventSystem.Post(CuttingChangedEvent.GetEvent(CuttingChangedEvent.CutState.Disabled));
 				break;
 			case CuttingState.Cutting:
 				mCuttingToolController.EquipCutter();
 				CanBeUnequipped = false;
-				mCutRotation = (mHorizontalCutNext ? Vector2.right : Vector2.up);
+				mCutRotation = (mHorizontalCutNext ? Vector2.get_right() : Vector2.get_up());
 				StartCutting(mData.BuffableCutExecution);
+				break;
+			case CuttingState.Disabled:
+				InputManager.get_ActiveDevice().StopVibration();
+				CanBeUnequipped = true;
+				Main.EventSystem.Post(CuttingChangedEvent.GetEvent(CuttingChangedEvent.CutState.Disabled));
 				break;
 			}
 		}
 
 		private void HandleQueuedCuttables()
 		{
+			//IL_004c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0053: Unknown result type (might be due to invalid IL or missing references)
+			//IL_005a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0073: Unknown result type (might be due to invalid IL or missing references)
 			for (int num = mQueuedCuttables.Count - 1; num >= 0; num--)
 			{
 				QueuedCuttable queuedCuttable = mQueuedCuttables[num];
-				if (queuedCuttable.Component != null)
+				if ((Object)(object)queuedCuttable.Component != (Object)null)
 				{
 					if (queuedCuttable.DelayReached)
 					{
@@ -372,7 +402,7 @@ namespace BBI.Unity.Game
 
 		private void HandleCuttingReady()
 		{
-			if (IsCurrentEquipment && IsCurrentModeReady && LynxControls.Instance.GameplayActions.CutterFire.WasPressed)
+			if (IsCurrentEquipment && IsCurrentModeReady && ((OneAxisInputControl)LynxControls.Instance.GameplayActions.CutterFire).get_WasPressed())
 			{
 				mCuttingToolController.SetState(CuttingState.Cutting);
 			}
@@ -380,7 +410,8 @@ namespace BBI.Unity.Game
 
 		private void HandleCutterDisabled()
 		{
-			if (IsCurrentEquipment && LynxControls.Instance.GameplayActions.CutterFire.WasPressed)
+			//IL_0039: Unknown result type (might be due to invalid IL or missing references)
+			if (IsCurrentEquipment && ((OneAxisInputControl)LynxControls.Instance.GameplayActions.CutterFire).get_WasPressed())
 			{
 				mCuttingToolController.EquipCutter();
 				Main.EventSystem.Post(MasterSFXEvent.GetEvent(mCuttingToolController.Data.CutDeniedAudioEvent));
@@ -394,13 +425,13 @@ namespace BBI.Unity.Game
 				return;
 			}
 			float amount = Mathf.Lerp(mData.BuffableCutExecution.ControllerVibrationIntensity.Min, mData.BuffableCutExecution.ControllerVibrationIntensity.Max, mCuttingToolController.CurrentHeatPercent);
-			InputManager.ActiveDevice.Vibrate(LynxControls.Instance.GetVibrationIntensity(amount));
-			mCutReloadInfo.CutSpeedTimer += Time.deltaTime;
+			InputManager.get_ActiveDevice().Vibrate(LynxControls.Instance.GetVibrationIntensity(amount));
+			mCutReloadInfo.CutSpeedTimer += Time.get_deltaTime();
 			if (mCutReloadInfo.CutSpeedTimer >= mData.CutTravelDuration)
 			{
 				mCutReloadInfo.CutSpeedTimer = 0f;
 				mCutReloadInfo.IsCutting = false;
-				InputManager.ActiveDevice.StopVibration();
+				InputManager.get_ActiveDevice().StopVibration();
 				if (mCuttingToolController.CurrentMode != CuttingToolController.CutterMode.Scalpel)
 				{
 					mCuttingToolController.SetState(CuttingState.Ready);
@@ -412,7 +443,7 @@ namespace BBI.Unity.Game
 		{
 			if (mCutReloadInfo.CoolingDown)
 			{
-				mCutReloadInfo.CoolDownTimer += Time.deltaTime;
+				mCutReloadInfo.CoolDownTimer += Time.get_deltaTime();
 				if (mCutReloadInfo.CoolDownTimer >= mData.BuffableCutExecution.RateOfFire)
 				{
 					mCutReloadInfo.CoolingDown = false;
@@ -423,7 +454,10 @@ namespace BBI.Unity.Game
 
 		private void StartCutting(ICutExecutionData data)
 		{
-			mCuttingToolController.AddHeat();
+			if (!GlobalOptions.Raw.GetBool("General.InfHeat") || SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
+			{
+				mCuttingToolController.AddHeat();
+			}
 			if (!mCuttingToolController.IsOverheated)
 			{
 				mCurrentCutTime = 0f;
@@ -438,16 +472,22 @@ namespace BBI.Unity.Game
 
 		private void ApplyRecoilForce(ForceInfo recoilForce)
 		{
-			if (m_PlayerRigidbody != null)
+			//IL_0019: Unknown result type (might be due to invalid IL or missing references)
+			//IL_001e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_002a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_002f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0036: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0039: Unknown result type (might be due to invalid IL or missing references)
+			if ((Object)(object)m_PlayerRigidbody != (Object)null)
 			{
-				Vector3 force = -m_PlayerRigidbody.transform.forward * recoilForce.Force;
-				m_PlayerRigidbody.AddForce(force, recoilForce.ForceMode);
+				Vector3 val = -((Component)m_PlayerRigidbody).get_transform().get_forward() * recoilForce.Force;
+				m_PlayerRigidbody.AddForce(val, recoilForce.ForceMode);
 			}
 		}
 
 		private void HandleCutting()
 		{
-			float num = mCurrentCutTime + Time.deltaTime;
+			float num = mCurrentCutTime + Time.get_deltaTime();
 			for (int i = 0; i < mData.BuffableCutExecution.BuffableCutLines.Count; i++)
 			{
 				CutLineBuffableData cutLineBuffableData = mData.BuffableCutExecution.BuffableCutLines[i];
@@ -465,6 +505,7 @@ namespace BBI.Unity.Game
 
 		private void CompleteCutting()
 		{
+			//IL_0027: Unknown result type (might be due to invalid IL or missing references)
 			if (mData.AutoAlternate)
 			{
 				mHorizontalCutNext = !mHorizontalCutNext;
@@ -476,30 +517,56 @@ namespace BBI.Unity.Game
 
 		private bool TryPerformCut(ICutExecutionData data, ICutLineData cutData)
 		{
-			if (LynxCameraController.MainCamera == null)
+			//IL_0044: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0054: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0059: Unknown result type (might be due to invalid IL or missing references)
+			//IL_005e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0062: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0067: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0090: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0095: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00d5: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00da: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00df: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00e0: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00e5: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00ea: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00ef: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0101: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0106: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0107: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0109: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0113: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0144: Unknown result type (might be due to invalid IL or missing references)
+			//IL_014e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0153: Unknown result type (might be due to invalid IL or missing references)
+			if ((Object)(object)LynxCameraController.MainCamera == (Object)null)
 			{
-				Debug.LogError("CuttingController failed to get MainCamera");
+				Debug.LogError((object)"CuttingController failed to get MainCamera");
 				return false;
 			}
 			mTargetBuffer.Clear();
 			if (TryGetCutLineTargetables(data, cutData, ref mTargetBuffer, out var cutRotation, out mAnyBelowPowerRating))
 			{
-				Vector3 normalized = Vector3.Cross(LynxCameraController.MainCameraTransform.forward, LynxCameraController.MainCameraTransform.TransformDirection(cutRotation)).normalized;
+				Vector3 val = Vector3.Cross(LynxCameraController.MainCameraTransform.get_forward(), LynxCameraController.MainCameraTransform.TransformDirection(Vector2.op_Implicit(cutRotation)));
+				Vector3 normalized = ((Vector3)(ref val)).get_normalized();
 				float num = 0f;
 				ForceInfo splitForce = cutData.SplitForce;
 				float splitGap = cutData.SplitGap;
 				ForceInfo impactForce = cutData.ImpactForce;
-				Vector3 forward = m_PlayerRigidbody.transform.forward;
+				Vector3 forward = ((Component)m_PlayerRigidbody).get_transform().get_forward();
 				int num2 = 0;
 				if (mTargetBuffer.Count > 0)
 				{
 					for (int num3 = mTargetBuffer.Count - 1; num3 >= 0; num3--)
 					{
 						CuttableInfo cuttableInfo = mTargetBuffer[num3];
-						float3 @float = math.normalize(math.cross(cuttableInfo.HitPoint.normal, normalized));
-						QueuedCuttable item = new QueuedCuttable(cuttableInfo.Component, cuttableInfo.HitPoint.point, normalized, @float, splitForce, splitGap, impactForce, forward, mData.BuffableCutExecution.PowerRating, data.SplitDelay);
+						float3 val2 = math.normalize(math.cross(float3.op_Implicit(((RaycastHit)(ref cuttableInfo.HitPoint)).get_normal()), float3.op_Implicit(normalized)));
+						QueuedCuttable item = new QueuedCuttable(cuttableInfo.Component, ((RaycastHit)(ref cuttableInfo.HitPoint)).get_point(), normalized, float3.op_Implicit(val2), splitForce, splitGap, impactForce, forward, mData.BuffableCutExecution.PowerRating, data.SplitDelay);
 						mQueuedCuttables.Add(item);
-						num = Mathf.Max(Vector3.SqrMagnitude(cuttableInfo.HitPoint.point - LynxCameraController.MainCameraTransform.position), num);
+						num = Mathf.Max(Vector3.SqrMagnitude(((RaycastHit)(ref cuttableInfo.HitPoint)).get_point() - LynxCameraController.MainCameraTransform.get_position()), num);
 						mTargetBuffer.RemoveAt(num3);
 						if (cuttableInfo.Component.CuttingTargetable.PowerRating > num2)
 						{
@@ -527,20 +594,38 @@ namespace BBI.Unity.Game
 
 		private void CutStructurePart(StructurePart cuttable, Vector3 cutPoint, Vector3 planeNormal, Vector3 planeTangent, ForceInfo splitForce, float splitGap, ForceInfo impactForce, Vector3 impactDirection, int powerRating)
 		{
-			if (!(cuttable == null) && cuttable.CuttingTargetable != null)
+			//IL_002f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0034: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0038: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0091: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0092: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00a0: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00a5: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00b1: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00b3: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00f3: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00f4: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00f5: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00f9: Unknown result type (might be due to invalid IL or missing references)
+			if ((Object)(object)cuttable == (Object)null || cuttable.CuttingTargetable == null)
 			{
-				if (cuttable.StructurePartAsset.Data.ObjectCutBySplitsawAction != null && World.DefaultGameObjectInjectionWorld.EntityManager.HasComponent<FirstGeneration>(cuttable.Entity))
+				return;
+			}
+			if ((Object)(object)cuttable.StructurePartAsset.Data.ObjectCutBySplitsawAction != (Object)null)
+			{
+				EntityManager entityManager = World.get_DefaultGameObjectInjectionWorld().get_EntityManager();
+				if (((EntityManager)(ref entityManager)).HasComponent<FirstGeneration>(cuttable.Entity))
 				{
 					Main.EventSystem.Post(PlayerActionTrackerEvent.GetEvent(cuttable.StructurePartAsset.Data.ObjectCutBySplitsawAction));
 				}
-				Main.EventSystem.Post(ObjectCutEvent.GetEvent(cuttable));
-				Main.EventSystem.Post(ForceReleaseEvent.GetEvent(ForceReleaseEvent.ReleaseState.HandsAndGrapple, cuttable.gameObject));
-				mCutSplitPlaneBuffer.SetNormalAndPosition(planeNormal, cutPoint);
-				mSplitPlanesArrayBuffer[0] = mCutSplitPlaneBuffer;
-				mSplitTangentArrayBuffer[0] = planeTangent;
-				VaporizationInfo vaporizationInfo = ((mData.VaporizationAsset != null) ? mData.VaporizationAsset.Data : VaporizationInfo.None);
-				cuttable.CuttingTargetable.Split(mSplitPlanesArrayBuffer, splitForce, splitGap, cutPoint, planeNormal, planeTangent, impactForce, impactDirection, powerRating, vaporizationInfo, mSplitTangentArrayBuffer);
 			}
+			Main.EventSystem.Post(ObjectCutEvent.GetEvent(cuttable));
+			Main.EventSystem.Post(ForceReleaseEvent.GetEvent(ForceReleaseEvent.ReleaseState.HandsAndGrapple, ((Component)cuttable).get_gameObject()));
+			((Plane)(ref mCutSplitPlaneBuffer)).SetNormalAndPosition(planeNormal, cutPoint);
+			mSplitPlanesArrayBuffer[0] = mCutSplitPlaneBuffer;
+			mSplitTangentArrayBuffer[0] = planeTangent;
+			VaporizationInfo vaporizationInfo = (((Object)(object)mData.VaporizationAsset != (Object)null) ? mData.VaporizationAsset.Data : VaporizationInfo.None);
+			cuttable.CuttingTargetable.Split(mSplitPlanesArrayBuffer, splitForce, splitGap, cutPoint, planeNormal, planeTangent, impactForce, impactDirection, powerRating, vaporizationInfo, mSplitTangentArrayBuffer);
 		}
 
 		private bool TryGetTargetables(ref List<CuttableInfo> targetablesOnLine)
@@ -556,15 +641,42 @@ namespace BBI.Unity.Game
 
 		private bool TryGetCutLineTargetables(ICutExecutionData data, ICutLineData cutData, ref List<CuttableInfo> targetablesOnLine, out Vector2 cutRotation, out bool anyBelowPowerRating)
 		{
+			//IL_001d: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0022: Unknown result type (might be due to invalid IL or missing references)
+			//IL_002b: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0039: Unknown result type (might be due to invalid IL or missing references)
+			//IL_003e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0045: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00bf: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00de: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0106: Unknown result type (might be due to invalid IL or missing references)
+			//IL_010b: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0110: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0113: Unknown result type (might be due to invalid IL or missing references)
+			//IL_013e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0144: Unknown result type (might be due to invalid IL or missing references)
+			//IL_014a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_014f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0154: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0157: Unknown result type (might be due to invalid IL or missing references)
+			//IL_01ce: Unknown result type (might be due to invalid IL or missing references)
+			//IL_01ed: Unknown result type (might be due to invalid IL or missing references)
+			//IL_021c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_021e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0235: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0237: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0250: Unknown result type (might be due to invalid IL or missing references)
 			anyBelowPowerRating = false;
-			if (LynxCameraController.MainCamera == null)
+			if ((Object)(object)LynxCameraController.MainCamera == (Object)null)
 			{
-				Debug.LogError("CuttingController failed to get MainCamera");
-				cutRotation = Vector2.zero;
+				Debug.LogError((object)"CuttingController failed to get MainCamera");
+				cutRotation = Vector2.get_zero();
 				return false;
 			}
 			GetRotatedCutLine(cutData, mCutRotation, out var newPosition, out cutRotation);
-			Vector2 vector = LynxCameraController.ScreenCenter + newPosition * LynxCameraController.ScreenWidth;
+			Vector2 val = LynxCameraController.ScreenCenter + newPosition * (float)LynxCameraController.ScreenWidth;
 			mAnythingInRange = false;
 			if (cutData.CutAllObjectsOnLine)
 			{
@@ -576,43 +688,45 @@ namespace BBI.Unity.Game
 				{
 					int rayIndexCenterOffset = Mathf.Abs(num4 - i);
 					float num5 = (float)i / (float)(num - 1);
-					float x = vector.x + (float)LynxCameraController.ScreenWidth * ((0f - num2) * 0.5f + num2 * num5);
-					float y = vector.y + (float)LynxCameraController.ScreenWidth * ((0f - num3) * 0.5f + num3 * num5);
-					Ray ray = LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(x, y));
+					float num6 = val.x + (float)LynxCameraController.ScreenWidth * ((0f - num2) * 0.5f + num2 * num5);
+					float num7 = val.y + (float)LynxCameraController.ScreenWidth * ((0f - num3) * 0.5f + num3 * num5);
+					Ray ray = LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(num6, num7));
 					AddHitValidTargetable(ray, rayIndexCenterOffset, data, ref targetablesOnLine, out var anyBelowPowerRating2);
 					anyBelowPowerRating |= anyBelowPowerRating2;
 				}
 			}
 			else
 			{
-				Ray ray2 = LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(vector.x, vector.y));
+				Ray ray2 = LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(val.x, val.y));
 				AddHitValidTargetable(ray2, 0, data, ref targetablesOnLine, out var anyBelowPowerRating3);
 				anyBelowPowerRating |= anyBelowPowerRating3;
 			}
 			bool flag = targetablesOnLine.Count > 0;
 			if (flag)
 			{
-				int num6 = mEdgeDetectionPoints.Points.Length;
-				float x2 = cutRotation.x;
-				float y2 = cutRotation.y;
-				_ = num6 / 2;
+				int num8 = mEdgeDetectionPoints.Points.Length;
+				float x = cutRotation.x;
+				float y = cutRotation.y;
+				_ = num8 / 2;
 				mEdgeDetectionPoints.FirstHitIndex = -1;
 				mEdgeDetectionPoints.LastHitIndex = -1;
-				for (int j = 0; j < num6; j++)
+				Vector3 val2 = default(Vector3);
+				RaycastHit val4 = default(RaycastHit);
+				for (int j = 0; j < num8; j++)
 				{
-					float num7 = (float)j / (float)(num6 - 1);
-					float x3 = vector.x + (float)LynxCameraController.ScreenWidth * ((0f - x2) * 0.5f + x2 * num7);
-					float y3 = vector.y + (float)LynxCameraController.ScreenWidth * ((0f - y2) * 0.5f + y2 * num7);
-					Vector3 vector2 = new Vector3(x3, y3);
-					Ray ray3 = LynxCameraController.MainCamera.ScreenPointToRay(vector2);
-					mEdgeDetectionPoints.Points[j].ScreenPosition = vector2;
-					if (Physics.Raycast(ray3, out var hitInfo, data.Range * 3f, mData.RaycastLayerMask))
+					float num9 = (float)j / (float)(num8 - 1);
+					float num10 = val.x + (float)LynxCameraController.ScreenWidth * ((0f - x) * 0.5f + x * num9);
+					float num11 = val.y + (float)LynxCameraController.ScreenWidth * ((0f - y) * 0.5f + y * num9);
+					((Vector3)(ref val2))._002Ector(num10, num11);
+					Ray val3 = LynxCameraController.MainCamera.ScreenPointToRay(val2);
+					mEdgeDetectionPoints.Points[j].ScreenPosition = val2;
+					if (Physics.Raycast(val3, ref val4, data.Range * 3f, LayerMask.op_Implicit(mData.RaycastLayerMask)))
 					{
 						bool flag2 = false;
 						for (int k = 0; k < targetablesOnLine.Count; k++)
 						{
-							StructurePart componentInParent = hitInfo.collider.transform.GetComponentInParent<StructurePart>();
-							if (componentInParent != null && componentInParent == targetablesOnLine[k].Component)
+							StructurePart componentInParent = ((Component)((Component)((RaycastHit)(ref val4)).get_collider()).get_transform()).GetComponentInParent<StructurePart>();
+							if ((Object)(object)componentInParent != (Object)null && (Object)(object)componentInParent == (Object)(object)targetablesOnLine[k].Component)
 							{
 								flag2 = true;
 								mEdgeDetectionPoints.Points[j].State = ((mCuttingToolController.State != CuttingState.Disabled) ? EdgeDetectionPoint.PointState.Valid : EdgeDetectionPoint.PointState.Invalid);
@@ -640,21 +754,35 @@ namespace BBI.Unity.Game
 
 		public static void GetRotatedCutLine(ICutLineData cutData, Vector2 rotation, out Vector2 newPosition, out Vector2 newRotation)
 		{
+			//IL_0000: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0007: Unknown result type (might be due to invalid IL or missing references)
+			//IL_000f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_001a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0039: Unknown result type (might be due to invalid IL or missing references)
+			//IL_003e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0069: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0071: Unknown result type (might be due to invalid IL or missing references)
+			//IL_007b: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0083: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0092: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0097: Unknown result type (might be due to invalid IL or missing references)
+			//IL_009e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_009f: Unknown result type (might be due to invalid IL or missing references)
 			float x = rotation.x;
 			float y = rotation.y;
 			float x2 = cutData.PositionOffset.x;
 			float y2 = cutData.PositionOffset.y;
-			float x3 = x2 * x - y2 * y;
-			float y3 = x2 * y + y2 * x;
-			newPosition = new Vector2(x3, y3);
+			float num = x2 * x - y2 * y;
+			float num2 = x2 * y + y2 * x;
+			newPosition = new Vector2(num, num2);
 			if (cutData.RotationOffset != 0f)
 			{
-				float f = cutData.RotationOffset * ((float)Math.PI / 180f);
-				x = Mathf.Cos(f);
-				y = Mathf.Sin(f);
-				x3 = rotation.x * x - rotation.y * y;
-				y3 = rotation.x * y + rotation.y * x;
-				newRotation = new Vector2(x3, y3);
+				float num3 = cutData.RotationOffset * ((float)Math.PI / 180f);
+				x = Mathf.Cos(num3);
+				y = Mathf.Sin(num3);
+				num = rotation.x * x - rotation.y * y;
+				num2 = rotation.x * y + rotation.y * x;
+				newRotation = new Vector2(num, num2);
 			}
 			else
 			{
@@ -664,24 +792,35 @@ namespace BBI.Unity.Game
 
 		private void AddHitValidTargetable(Ray ray, int rayIndexCenterOffset, ICutExecutionData data, ref List<CuttableInfo> targetablesOnLine, out bool anyBelowPowerRating)
 		{
+			//IL_0004: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0013: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0086: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00dd: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00de: Unknown result type (might be due to invalid IL or missing references)
+			//IL_010b: Unknown result type (might be due to invalid IL or missing references)
 			anyBelowPowerRating = false;
-			if (!Physics.Raycast(ray, out var hitInfo, data.Range, mData.RaycastLayerMask))
+			RaycastHit val = default(RaycastHit);
+			if (!Physics.Raycast(ray, ref val, data.Range, LayerMask.op_Implicit(mData.RaycastLayerMask)))
 			{
 				return;
 			}
 			mAnythingInRange = true;
-			if (((1 << hitInfo.collider.gameObject.layer) & mData.ValidSurfaceLayerMask.value) <= 0)
+			int num = 1 << ((Component)((RaycastHit)(ref val)).get_collider()).get_gameObject().get_layer();
+			LayerMask validSurfaceLayerMask = mData.ValidSurfaceLayerMask;
+			if ((num & ((LayerMask)(ref validSurfaceLayerMask)).get_value()) <= 0)
 			{
 				return;
 			}
 			for (int i = 0; i < data.ExcludeTags.Length; i++)
 			{
-				if (hitInfo.collider.CompareTag(data.ExcludeTags[i]))
+				if (((Component)((RaycastHit)(ref val)).get_collider()).CompareTag(data.ExcludeTags[i]))
 				{
 					return;
 				}
 			}
-			if (!TryGetValidTargetable(hitInfo, mData.BuffableCutExecution.PowerRating, out var part, out anyBelowPowerRating))
+			if (!TryGetValidTargetable(val, mData.BuffableCutExecution.PowerRating, out var part, out anyBelowPowerRating))
 			{
 				return;
 			}
@@ -689,13 +828,13 @@ namespace BBI.Unity.Game
 			for (int j = 0; j < targetablesOnLine.Count; j++)
 			{
 				CuttableInfo value = targetablesOnLine[j];
-				if (value.Component == part)
+				if ((Object)(object)value.Component == (Object)(object)part)
 				{
 					flag = false;
 					if (rayIndexCenterOffset < value.RayIndexCenterOffset)
 					{
 						value.RayIndexCenterOffset = rayIndexCenterOffset;
-						value.HitPoint = hitInfo;
+						value.HitPoint = val;
 						targetablesOnLine[j] = value;
 					}
 					break;
@@ -703,15 +842,15 @@ namespace BBI.Unity.Game
 			}
 			if (flag)
 			{
-				targetablesOnLine.Add(new CuttableInfo(part, hitInfo, rayIndexCenterOffset));
+				targetablesOnLine.Add(new CuttableInfo(part, val, rayIndexCenterOffset));
 			}
 		}
 
 		public static bool TryGetValidTargetable(RaycastHit hit, int powerRating, out StructurePart part, out bool anyBelowPowerRating, bool uiInfo = false)
 		{
-			part = hit.collider.transform.GetComponentInParent<StructurePart>();
+			part = ((Component)((Component)((RaycastHit)(ref hit)).get_collider()).get_transform()).GetComponentInParent<StructurePart>();
 			anyBelowPowerRating = false;
-			if (part != null && part.CuttingTargetable != null)
+			if ((Object)(object)part != (Object)null && part.CuttingTargetable != null)
 			{
 				bool flag = part.CuttingTargetable.IsAimCuttable();
 				bool flag2 = part.CuttingTargetable.IsQuickCuttable();
@@ -727,8 +866,13 @@ namespace BBI.Unity.Game
 
 		public bool TryGetTargetableInRange(out StructurePart targetable, out bool anyBelowPowerRating, bool uiInfo = false)
 		{
+			//IL_0015: Unknown result type (might be due to invalid IL or missing references)
+			//IL_001f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0037: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0048: Unknown result type (might be due to invalid IL or missing references)
 			anyBelowPowerRating = false;
-			if (LynxCameraController.MainCameraTransform != null && Physics.Raycast(LynxCameraController.MainCameraTransform.position, LynxCameraController.MainCameraTransform.forward, out var hitInfo, ActiveCutData.Range, mData.RaycastLayerMask) && TryGetValidTargetable(hitInfo, mData.BuffableCutExecution.PowerRating, out targetable, out anyBelowPowerRating, uiInfo))
+			RaycastHit hit = default(RaycastHit);
+			if ((Object)(object)LynxCameraController.MainCameraTransform != (Object)null && Physics.Raycast(LynxCameraController.MainCameraTransform.get_position(), LynxCameraController.MainCameraTransform.get_forward(), ref hit, ActiveCutData.Range, LayerMask.op_Implicit(mData.RaycastLayerMask)) && TryGetValidTargetable(hit, mData.BuffableCutExecution.PowerRating, out targetable, out anyBelowPowerRating, uiInfo))
 			{
 				return true;
 			}
@@ -738,7 +882,23 @@ namespace BBI.Unity.Game
 
 		public override void DrawDebugGizmos()
 		{
-			if (!Application.isPlaying || LynxCameraController.MainCamera == null)
+			//IL_0036: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0044: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0049: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0050: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0055: Unknown result type (might be due to invalid IL or missing references)
+			//IL_005a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0061: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0068: Unknown result type (might be due to invalid IL or missing references)
+			//IL_006f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0074: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00aa: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00b9: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00d2: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00f2: Unknown result type (might be due to invalid IL or missing references)
+			//IL_011b: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0120: Unknown result type (might be due to invalid IL or missing references)
+			if (!Application.get_isPlaying() || (Object)(object)LynxCameraController.MainCamera == (Object)null)
 			{
 				return;
 			}
@@ -746,8 +906,8 @@ namespace BBI.Unity.Game
 			{
 				CutLineBuffableData cutLineBuffableData = mData.BuffableCutExecution.BuffableCutLines[i];
 				GetRotatedCutLine(cutLineBuffableData, mCutRotation, out var newPosition, out var newRotation);
-				Vector2 vector = LynxCameraController.ScreenCenter + newPosition * LynxCameraController.ScreenWidth;
-				Gizmos.DrawRay(LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(vector.x, vector.y)));
+				Vector2 val = LynxCameraController.ScreenCenter + newPosition * (float)LynxCameraController.ScreenWidth;
+				Gizmos.DrawRay(LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(val.x, val.y)));
 				if (cutLineBuffableData.CutAllObjectsOnLine)
 				{
 					int num = (int)(cutLineBuffableData.CutLineWidth * mData.RaycastScreenWidthDensity * 100f);
@@ -756,9 +916,9 @@ namespace BBI.Unity.Game
 					for (int j = 0; j < num; j++)
 					{
 						float num4 = (float)j / (float)(num - 1);
-						float x = vector.x + (float)LynxCameraController.ScreenWidth * ((0f - num2) * 0.5f + num2 * num4);
-						float y = vector.y + (float)LynxCameraController.ScreenWidth * ((0f - num3) * 0.5f + num3 * num4);
-						Gizmos.DrawRay(LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(x, y)));
+						float num5 = val.x + (float)LynxCameraController.ScreenWidth * ((0f - num2) * 0.5f + num2 * num4);
+						float num6 = val.y + (float)LynxCameraController.ScreenWidth * ((0f - num3) * 0.5f + num3 * num4);
+						Gizmos.DrawRay(LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(num5, num6)));
 					}
 				}
 			}
@@ -766,7 +926,21 @@ namespace BBI.Unity.Game
 
 		public override void DrawDebugInfo()
 		{
-			if (!Application.isPlaying || LynxCameraController.MainCamera == null)
+			//IL_0036: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0044: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0049: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0050: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0055: Unknown result type (might be due to invalid IL or missing references)
+			//IL_005a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_005c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0069: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0080: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00bb: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00ca: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00e3: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0101: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0139: Unknown result type (might be due to invalid IL or missing references)
+			if (!Application.get_isPlaying() || (Object)(object)LynxCameraController.MainCamera == (Object)null)
 			{
 				return;
 			}
@@ -774,8 +948,8 @@ namespace BBI.Unity.Game
 			{
 				CutLineBuffableData cutLineBuffableData = mData.BuffableCutExecution.BuffableCutLines[i];
 				GetRotatedCutLine(cutLineBuffableData, mCutRotation, out var newPosition, out var newRotation);
-				Vector2 vector = LynxCameraController.ScreenCenter + newPosition * LynxCameraController.ScreenWidth;
-				GUI.Box(new Rect(vector.x - 1f, vector.y - 1f, 1f, 1f), Texture2D.whiteTexture);
+				Vector2 val = LynxCameraController.ScreenCenter + newPosition * (float)LynxCameraController.ScreenWidth;
+				GUI.Box(new Rect(val.x - 1f, val.y - 1f, 1f, 1f), (Texture)(object)Texture2D.get_whiteTexture());
 				if (cutLineBuffableData.CutAllObjectsOnLine)
 				{
 					int num = (int)(cutLineBuffableData.CutLineWidth * mData.RaycastScreenWidthDensity * 100f);
@@ -784,9 +958,9 @@ namespace BBI.Unity.Game
 					for (int j = 0; j < num; j++)
 					{
 						float num4 = (float)j / (float)(num - 1);
-						float num5 = vector.x + (float)LynxCameraController.ScreenWidth * ((0f - num2) * 0.5f + num2 * num4);
-						float num6 = vector.y - (float)LynxCameraController.ScreenWidth * ((0f - num3) * 0.5f + num3 * num4);
-						GUI.Box(new Rect(num5 - 1f, num6 - 1f, 1f, 1f), Texture2D.whiteTexture);
+						float num5 = val.x + (float)LynxCameraController.ScreenWidth * ((0f - num2) * 0.5f + num2 * num4);
+						float num6 = val.y - (float)LynxCameraController.ScreenWidth * ((0f - num3) * 0.5f + num3 * num4);
+						GUI.Box(new Rect(num5 - 1f, num6 - 1f, 1f, 1f), (Texture)(object)Texture2D.get_whiteTexture());
 					}
 				}
 			}

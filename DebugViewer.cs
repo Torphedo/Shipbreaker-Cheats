@@ -1,5 +1,6 @@
 using System;
 using BBI.Unity.Game;
+using InControl;
 using UnityEngine;
 
 namespace BBI.Core.Utility
@@ -26,9 +27,9 @@ namespace BBI.Core.Utility
 
 		public MegaCuttingController DebugMegaCutter;
 
-		private Vector3 mDebugPlayerVelocity = Vector3.zero;
+		private Vector3 mDebugPlayerVelocity = Vector3.get_zero();
 
-		private Quaternion mOriginalPlayerRotation = Quaternion.identity;
+		private Quaternion mOriginalPlayerRotation = Quaternion.get_identity();
 
 		private const float kMinMouselookX = -360f;
 
@@ -50,11 +51,13 @@ namespace BBI.Core.Utility
 
 		public ObjectInfoDebugger ObjectInfoDebugger = new ObjectInfoDebugger();
 
+		private bool mShowRaceControls;
+
 		private bool HasAudioDebugAsset
 		{
 			get
 			{
-				if (AudioDebugInfoAsset != null)
+				if ((Object)(object)AudioDebugInfoAsset != (Object)null)
 				{
 					return AudioDebugInfoAsset.Data != null;
 				}
@@ -64,12 +67,12 @@ namespace BBI.Core.Utility
 
 		public void Refresh()
 		{
-			DebugInfos = UnityEngine.Object.FindObjectsOfType<DebuggableMonoBehaviour>();
+			DebugInfos = Object.FindObjectsOfType<DebuggableMonoBehaviour>();
 		}
 
 		private void Awake()
 		{
-			mMegaCutters = UnityEngine.Object.FindObjectsOfType<MegaCuttingController>();
+			mMegaCutters = Object.FindObjectsOfType<MegaCuttingController>();
 			Main.EventSystem.AddHandler<ToggleObjectDebuggerEvent>(OnToggleObjectDebugger);
 		}
 
@@ -85,34 +88,38 @@ namespace BBI.Core.Utility
 
 		private void Update()
 		{
-			if (LynxControls.Instance != null)
+			if ((Object)(object)LynxControls.Instance != (Object)null)
 			{
-				if (LynxControls.Instance.GameplayActions.ShowDebugControls.WasPressed)
+				if (((OneAxisInputControl)LynxControls.Instance.GameplayActions.ShowDebugControls).get_WasPressed() && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
 				{
 					mShowDebugControls = !mShowDebugControls;
 				}
-				if (LynxControls.Instance.GameplayActions.ToggleObjectDebugInfo.WasPressed)
+				if (((OneAxisInputControl)LynxControls.Instance.GameplayActions.ShowDebugControls).get_WasPressed() && SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
+				{
+					mShowRaceControls = !mShowRaceControls;
+				}
+				if (((OneAxisInputControl)LynxControls.Instance.GameplayActions.ToggleObjectDebugInfo).get_WasPressed())
 				{
 					EnableObjectInfoDebugging = !EnableObjectInfoDebugging;
 				}
-				if (LynxControls.Instance.GameplayActions.DebugRefillOxygen.WasPressed && HealAllDamageAsset != null)
+				if (((OneAxisInputControl)LynxControls.Instance.GameplayActions.DebugRefillOxygen).get_WasPressed() && (Object)(object)HealAllDamageAsset != (Object)null)
 				{
-					VitalitySystem.TryModifyVitality(LynxPlayerController.Instance.gameObject, HealAllDamageAsset.Data);
+					VitalitySystem.TryModifyVitality(((Component)LynxPlayerController.Instance).get_gameObject(), HealAllDamageAsset.Data);
 				}
-				if (LynxControls.Instance.GameplayActions.DebugRefillThrusters.WasPressed)
+				if (((OneAxisInputControl)LynxControls.Instance.GameplayActions.DebugRefillThrusters).get_WasPressed())
 				{
 					Main.EventSystem.Post(UpdateThrusterChargeEvent.GetEvent(100f, null));
 				}
-				if (LynxControls.Instance.GameplayActions.DebugMegaCutPlayer.WasPressed && DebugMegaCutter != null)
+				if (((OneAxisInputControl)LynxControls.Instance.GameplayActions.DebugMegaCutPlayer).get_WasPressed() && (Object)(object)DebugMegaCutter != (Object)null)
 				{
 					DebugMegaCutter.TryCut();
 				}
-				if (LynxControls.Instance.GameplayActions.DebugMegaCutAll.WasPressed && mMegaCutters != null)
+				if (((OneAxisInputControl)LynxControls.Instance.GameplayActions.DebugMegaCutAll).get_WasPressed() && mMegaCutters != null)
 				{
 					for (int i = 0; i < mMegaCutters.Length; i++)
 					{
 						MegaCuttingController megaCuttingController = mMegaCutters[i];
-						if (megaCuttingController != null && megaCuttingController != DebugMegaCutter)
+						if ((Object)(object)megaCuttingController != (Object)null && (Object)(object)megaCuttingController != (Object)(object)DebugMegaCutter)
 						{
 							megaCuttingController.TryCut();
 						}
@@ -129,54 +136,82 @@ namespace BBI.Core.Utility
 
 		private void HandleTimeScaleDebugInput()
 		{
-			if (LynxControls.Instance.GameplayActions.DebugIncrementTimeScale.WasPressed || LynxControls.Instance.GameplayActions.DebugIncrementTimeScale.WasRepeated)
+			if (((OneAxisInputControl)LynxControls.Instance.GameplayActions.DebugIncrementTimeScale).get_WasPressed() && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
 			{
-				Time.timeScale = Mathf.Clamp(Time.timeScale += 0.1f, 0f, 20f);
+				float num = Time.get_timeScale() + 0.1f;
+				Time.set_timeScale(num);
+				Time.set_timeScale(Mathf.Clamp(num, 0f, 20f));
 				mDisplayTimeScale = true;
 			}
-			if (LynxControls.Instance.GameplayActions.DebugDecrementTimeScale.WasPressed || LynxControls.Instance.GameplayActions.DebugDecrementTimeScale.WasRepeated)
+			if (((OneAxisInputControl)LynxControls.Instance.GameplayActions.DebugDecrementTimeScale).get_WasPressed() && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
 			{
-				Time.timeScale = Mathf.Clamp(Time.timeScale -= 0.1f, 0f, 20f);
+				float num2 = Time.get_timeScale() - 0.1f;
+				Time.set_timeScale(num2);
+				Time.set_timeScale(Mathf.Clamp(num2, 0f, 20f));
 				mDisplayTimeScale = true;
 			}
-			if (LynxControls.Instance.GameplayActions.DebugResetTimeScale.WasPressed)
+			if (((OneAxisInputControl)LynxControls.Instance.GameplayActions.DebugResetTimeScale).get_WasPressed() && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
 			{
-				Time.timeScale = 1f;
+				Time.set_timeScale(1f);
 				mDisplayTimeScale = false;
 			}
-			if (LynxControls.Instance.GameplayActions.DebugPauseTimeScale.WasPressed)
+			if (((OneAxisInputControl)LynxControls.Instance.GameplayActions.DebugPauseTimeScale).get_WasPressed())
 			{
-				Time.timeScale = 0f;
+				Time.set_timeScale(0f);
 				mDisplayTimeScale = true;
+			}
+			if (((OneAxisInputControl)LynxControls.Instance.GameplayActions.ToggleDebugMenu).get_WasPressed() && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
+			{
+				CertificationService.Instance.TryIncreaseCertification();
 			}
 		}
 
 		private void OnGUI()
 		{
-			if ((HasAudioDebugAsset && AudioDebugInfoAsset.Data.ShowWwiseTimestamp) || mShowDebugControls || (mDisplayTimeScale && Time.timeScale != 1f))
+			//IL_0098: Unknown result type (might be due to invalid IL or missing references)
+			if ((HasAudioDebugAsset && AudioDebugInfoAsset.Data.ShowWwiseTimestamp) || mShowDebugControls || (mDisplayTimeScale && Time.get_timeScale() != 1f))
 			{
-				GUILayout.Label("");
+				GUILayout.Label("", Array.Empty<GUILayoutOption>());
 			}
 			if ((HasAudioDebugAsset && AudioDebugInfoAsset.Data.ShowWwiseTimestamp) || (DebugAudioService.Instance != null && DebugAudioService.Instance.ShowWwiseTimestamp))
 			{
 				TimeSpan timeSpan = TimeSpan.FromMilliseconds(AkSoundEngine.GetTimeStamp());
 				GUILayout.BeginArea(new Rect(6f, 20f, 100f, 100f));
-				GUILayout.Label($"<color=#ff0088>{timeSpan.Hours:D2}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}:{timeSpan.Milliseconds:D3}</color>");
+				GUILayout.Label($"<color=#ff0088>{timeSpan.Hours:D2}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}:{timeSpan.Milliseconds:D3}</color>", Array.Empty<GUILayoutOption>());
 				GUILayout.EndArea();
 			}
 			if (mShowDebugControls)
 			{
-				GUILayout.Label("F1 - Refill Oxygen");
-				GUILayout.Label("F2 - Refill Thrusters");
-				GUILayout.Label("F4 - Frame Rate Counter");
-				GUILayout.Label("F5 - Mega Cut Player");
-				GUILayout.Label("F6 - Mega Cut All");
-				GUILayout.Label("F9 - Save Game");
-				GUILayout.Label("F10 - Load Game");
-				GUILayout.Label("I - Invert Axes");
-				GUILayout.Label("Alt + Z - Glass Mode");
-				GUILayout.Label("Shift + Esc - Return to Front End");
+				GUILayout.Label("F1 - Refill Oxygen", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F2 - Refill Thrusters", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F3 - Glass Mode", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F4 - Frame Rate Counter", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F5 - Mega Cutter", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F6 - Complete Current Certification", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F7 - Toggle Wireframe", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F10 - Show Modded Controls", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("Left Arrow - Pause Time", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("Right Arrow - Reset Game Speed", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("Up Arrow - Increase Game Speed by 0.1x", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("Down Arrow - Decrease Game Speed by 0.1x", Array.Empty<GUILayoutOption>());
+			}
+			if (mShowRaceControls)
+			{
+				GUILayout.Label(" ", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F3 - Glass Mode", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F4 - Frame Rate Counter", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F7 - Toggle Wireframe", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F10 - Show Modded Controls", Array.Empty<GUILayoutOption>());
 			}
 		}
+
+		public DebugViewer()
+			: this()
+		{
+		}//IL_0040: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0045: Unknown result type (might be due to invalid IL or missing references)
+		//IL_004b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0050: Unknown result type (might be due to invalid IL or missing references)
+
 	}
 }

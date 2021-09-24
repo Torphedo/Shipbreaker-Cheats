@@ -1,5 +1,6 @@
 using System;
 using BBI.Core.Utility;
+using Carbon.Core;
 using InControl;
 using Unity.Entities;
 using UnityEngine;
@@ -25,6 +26,10 @@ namespace BBI.Unity.Game
 
 		private const int kTargetTypeInvalid = 2;
 
+		private float m_MeltTime = GlobalOptions.Raw.GetFloat("General.StingerMeltTime", -1f);
+
+		private float mSetPowerRating;
+
 		public IScalpelData Data => mData;
 
 		public ScalpelTarget Target { get; } = new ScalpelTarget();
@@ -46,16 +51,16 @@ namespace BBI.Unity.Game
 
 		private void Awake()
 		{
-			mCuttingToolController = GetComponentInParent<CuttingToolController>();
-			if (mCuttingToolController == null)
+			mCuttingToolController = ((Component)this).GetComponentInParent<CuttingToolController>();
+			if ((Object)(object)mCuttingToolController == (Object)null)
 			{
-				Debug.LogError("[CuttingTool] Unable to find CuttingToolController. Disabling.");
-				base.enabled = false;
+				Debug.LogError((object)"[CuttingTool] Unable to find CuttingToolController. Disabling.");
+				((Behaviour)this).set_enabled(false);
 			}
-			else if (m_ScalpelAsset == null)
+			else if ((Object)(object)m_ScalpelAsset == (Object)null)
 			{
-				Debug.LogError("[CuttingTool] Scalpel Asset is missing.");
-				base.enabled = false;
+				Debug.LogError((object)"[CuttingTool] Scalpel Asset is missing.");
+				((Behaviour)this).set_enabled(false);
 			}
 			else
 			{
@@ -84,24 +89,33 @@ namespace BBI.Unity.Game
 
 		private void UpdateTargeting()
 		{
+			//IL_0047: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0051: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0069: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0085: Unknown result type (might be due to invalid IL or missing references)
+			//IL_008a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0097: Unknown result type (might be due to invalid IL or missing references)
+			//IL_009c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0184: Unknown result type (might be due to invalid IL or missing references)
 			StructurePart part = Target.Part;
-			StructureGroup structureGroup = ((Target.Part != null) ? Target.Part.Group : null);
+			StructureGroup structureGroup = (((Object)(object)Target.Part != (Object)null) ? Target.Part.Group : null);
 			StructureGroup structureGroup2 = null;
 			int targetTypeRTPCValue = GetTargetTypeRTPCValue(Target);
-			if (Physics.Raycast(LynxCameraController.MainCameraTransform.position, LynxCameraController.MainCameraTransform.forward, out var hitInfo, mData.Range, mData.LayerMask))
+			RaycastHit val = default(RaycastHit);
+			if (Physics.Raycast(LynxCameraController.MainCameraTransform.get_position(), LynxCameraController.MainCameraTransform.get_forward(), ref val, mData.Range, LayerMask.op_Implicit(mData.LayerMask)))
 			{
-				Target.Position = hitInfo.point;
-				Target.Normal = hitInfo.normal;
-				Target.Part = hitInfo.collider.transform.GetComponentInParent<StructurePart>();
-				Target.GameObject = hitInfo.collider.gameObject;
+				Target.Position = ((RaycastHit)(ref val)).get_point();
+				Target.Normal = ((RaycastHit)(ref val)).get_normal();
+				Target.Part = ((Component)((Component)((RaycastHit)(ref val)).get_collider()).get_transform()).GetComponentInParent<StructurePart>();
+				Target.GameObject = ((Component)((RaycastHit)(ref val)).get_collider()).get_gameObject();
 				Target.IsValid = IsValidTargetable(Target.Part);
-				structureGroup2 = ((Target.Part != null) ? Target.Part.Group : null);
+				structureGroup2 = (((Object)(object)Target.Part != (Object)null) ? Target.Part.Group : null);
 			}
 			else
 			{
 				Target.Reset(mData.Range);
 			}
-			if (mCuttingToolController.State == CuttingState.Cutting && part != Target.Part && (structureGroup2 == null || structureGroup != structureGroup2))
+			if (mCuttingToolController.State == CuttingState.Cutting && (Object)(object)part != (Object)(object)Target.Part && ((Object)(object)structureGroup2 == (Object)null || (Object)(object)structureGroup != (Object)(object)structureGroup2))
 			{
 				int targetTypeRTPCValue2 = GetTargetTypeRTPCValue(Target);
 				if (targetTypeRTPCValue2 != 2 || targetTypeRTPCValue != 2)
@@ -114,7 +128,7 @@ namespace BBI.Unity.Game
 
 		private void HandleReadyState()
 		{
-			if (LynxControls.Instance.GameplayActions.CutterFire.WasPressed)
+			if (((OneAxisInputControl)LynxControls.Instance.GameplayActions.CutterFire).get_WasPressed())
 			{
 				mCuttingToolController.SetState(CuttingState.Cutting);
 			}
@@ -122,21 +136,31 @@ namespace BBI.Unity.Game
 
 		private void HandleCuttingState()
 		{
-			if (!LynxControls.Instance.GameplayActions.CutterFire.IsPressed)
+			//IL_0135: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0151: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0156: Unknown result type (might be due to invalid IL or missing references)
+			//IL_016a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0186: Unknown result type (might be due to invalid IL or missing references)
+			//IL_018b: Unknown result type (might be due to invalid IL or missing references)
+			//IL_01fd: Unknown result type (might be due to invalid IL or missing references)
+			//IL_01fe: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0237: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0243: Unknown result type (might be due to invalid IL or missing references)
+			if (!((OneAxisInputControl)LynxControls.Instance.GameplayActions.CutterFire).get_IsPressed())
 			{
 				mCuttingToolController.DelayCooldown();
 				mCuttingToolController.SetState(CuttingState.Ready);
 				return;
 			}
 			float amount = Mathf.Lerp(mData.ControllerVibrationIntensity.Min, mData.ControllerVibrationIntensity.Max, mCuttingToolController.CurrentHeatPercent);
-			InputManager.ActiveDevice.Vibrate(LynxControls.Instance.GetVibrationIntensity(amount));
-			if (Time.time - mCameraShakeStartTime >= mData.CuttingCameraShakeSettings.ShakeDuration)
+			InputManager.get_ActiveDevice().Vibrate(LynxControls.Instance.GetVibrationIntensity(amount));
+			if (Time.get_time() - mCameraShakeStartTime >= mData.CuttingCameraShakeSettings.ShakeDuration)
 			{
-				mCameraShakeStartTime = Time.time;
+				mCameraShakeStartTime = Time.get_time();
 				Main.EventSystem.Post(CameraShakeEvent.GetGlobalEvent(mData.CuttingCameraShakeSettings));
 			}
 			StructurePart part = Target.Part;
-			if (part == null || part.CuttingTargetable == null)
+			if ((Object)(object)part == (Object)null || part.CuttingTargetable == null)
 			{
 				mCuttingToolController.UpdateCutGradeRTPC(0);
 			}
@@ -147,7 +171,7 @@ namespace BBI.Unity.Game
 			if (Target.IsValid)
 			{
 				bool isPartOfGroup = Target.Part.IsPartOfGroup;
-				Entity entity = (isPartOfGroup ? Target.Part.Group.EntityBlueprintComponent.Entity : Target.Part.EntityBlueprintComponent.Entity);
+				Entity val = (isPartOfGroup ? Target.Part.Group.EntityBlueprintComponent.Entity : Target.Part.EntityBlueprintComponent.Entity);
 				EntityManager entityManager = (isPartOfGroup ? Target.Part.Group.EntityBlueprintComponent.EntityManager : Target.Part.EntityBlueprintComponent.EntityManager);
 				float mass = 0f;
 				if (isPartOfGroup)
@@ -158,33 +182,40 @@ namespace BBI.Unity.Game
 				{
 					Target.Part.TryGetPartMass(out mass);
 				}
-				float meltingTime = Target.Part.CuttingTargetable.GetMeltingTime(mass);
-				if (entityManager.TryGetComponent<VaporizationComponent>(entity, out var component))
+				if (m_MeltTime < 0f || SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
+				{
+					m_MeltTime = Target.Part.CuttingTargetable.GetMeltingTime(mass);
+				}
+				if (entityManager.TryGetComponent<VaporizationComponent>(val, out VaporizationComponent component))
 				{
 					component.ModifiedThisFrame = true;
-					component.VaporizationAmount += Time.deltaTime;
-					component.MaxVaporization = meltingTime;
+					component.VaporizationAmount += Time.get_deltaTime();
+					component.MaxVaporization = m_MeltTime;
 					component.Type = VaporizationType.Scalpel;
-					entityManager.SetComponentData(entity, component);
+					((EntityManager)(ref entityManager)).SetComponentData<VaporizationComponent>(val, component);
 				}
 				else
 				{
-					entityManager.AddComponentData(entity, new VaporizationComponent
+					((EntityManager)(ref entityManager)).AddComponentData<VaporizationComponent>(val, new VaporizationComponent
 					{
 						ModifiedThisFrame = true,
-						VaporizationAmount = Time.deltaTime,
-						MaxVaporization = meltingTime,
+						VaporizationAmount = Time.get_deltaTime(),
+						MaxVaporization = m_MeltTime,
 						Type = VaporizationType.Scalpel
 					});
 				}
 			}
-			mCuttingToolController.AddHeat();
+			if (!GlobalOptions.Raw.GetBool("General.InfHeat") || SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
+			{
+				mCuttingToolController.AddHeat();
+			}
 			mCuttingToolController.DelayCooldown();
 		}
 
 		private void HandleDisabledState()
 		{
-			if (IsCurrentEquipment && LynxControls.Instance.GameplayActions.CutterFire.WasPressed)
+			//IL_0039: Unknown result type (might be due to invalid IL or missing references)
+			if (IsCurrentEquipment && ((OneAxisInputControl)LynxControls.Instance.GameplayActions.CutterFire).get_WasPressed())
 			{
 				mCuttingToolController.EquipCutter();
 				Main.EventSystem.Post(MasterSFXEvent.GetEvent(mCuttingToolController.Data.CutDeniedAudioEvent));
@@ -201,7 +232,7 @@ namespace BBI.Unity.Game
 				break;
 			case CuttingState.Cutting:
 				mCuttingToolController.EquipCutter();
-				mCameraShakeStartTime = Time.time;
+				mCameraShakeStartTime = Time.get_time();
 				Main.EventSystem.Post(CameraShakeEvent.GetGlobalEvent(mData.CuttingCameraShakeSettings));
 				mCuttingToolController.DurabilityHandler.HandleDurabilityDamageOfType(DurabilityDamageDef.DurabilityDamageType.ScalpelIsActive, () => IsCurrentEquipment && mCuttingToolController.State == CuttingState.Cutting);
 				UpdateTargetTypeRTPC(GetTargetTypeRTPCValue(Target));
@@ -214,15 +245,20 @@ namespace BBI.Unity.Game
 			default:
 				throw new ArgumentOutOfRangeException();
 			}
-			InputManager.ActiveDevice.StopVibration();
+			InputManager.get_ActiveDevice().StopVibration();
 			Main.EventSystem.Post(ScalpelStateChangedEvent.GetEvent(newState));
 		}
 
 		private bool IsValidTargetable(StructurePart part)
 		{
-			if (part != null && part.CuttingTargetable != null && part.CuttingTargetable.IsScalpelCuttable() && mData.PowerRating >= part.CuttingTargetable.PowerRating && EntityBlueprintComponent.IsValid(part.EntityBlueprintComponent))
+			mSetPowerRating = GlobalOptions.Raw.GetFloat("General.StingerCutGrade", 1f);
+			if (SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
 			{
-				if (!(part.Group == null))
+				mSetPowerRating = mData.PowerRating;
+			}
+			if ((Object)(object)part != (Object)null && part.CuttingTargetable != null && part.CuttingTargetable.IsScalpelCuttable() && mSetPowerRating >= (float)part.CuttingTargetable.PowerRating && EntityBlueprintComponent.IsValid(part.EntityBlueprintComponent))
+			{
+				if (!((Object)(object)part.Group == (Object)null))
 				{
 					return EntityBlueprintComponent.IsValid(part.Group.EntityBlueprintComponent);
 				}
@@ -237,7 +273,7 @@ namespace BBI.Unity.Game
 			{
 				return 1;
 			}
-			if (target.Part != null)
+			if ((Object)(object)target.Part != (Object)null)
 			{
 				return 2;
 			}
@@ -246,6 +282,7 @@ namespace BBI.Unity.Game
 
 		private void UpdateTargetTypeRTPC(int value)
 		{
+			//IL_000b: Unknown result type (might be due to invalid IL or missing references)
 			Main.EventSystem.Post(SetRTPCEvent.GetMasterEvent(mData.ScalpelTargetTypeAudioParameter, value));
 		}
 	}

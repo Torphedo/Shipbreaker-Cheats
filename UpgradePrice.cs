@@ -1,4 +1,5 @@
 using System;
+using Carbon.Core;
 using UnityEngine;
 
 namespace BBI.Unity.Game
@@ -14,6 +15,16 @@ namespace BBI.Unity.Game
 
 		public CurrencyAsset CurrencyAsset => m_CurrencyAsset;
 
-		public int Amount => m_Amount;
+		public int Amount
+		{
+			get
+			{
+				if (GlobalOptions.Raw.GetBool("General.FreeUpgrades"))
+				{
+					return m_Amount = 0;
+				}
+				return m_Amount;
+			}
+		}
 	}
 }

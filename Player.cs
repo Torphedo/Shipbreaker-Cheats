@@ -1,5 +1,8 @@
 using System.Collections;
+using Carbon.Audio;
+using Carbon.Core;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace BBI.Unity.Game
@@ -14,9 +17,9 @@ namespace BBI.Unity.Game
 
 		private bool mDisableThrust;
 
-		private Vector3 mSpawnedPosition = Vector3.zero;
+		private Vector3 mSpawnedPosition = Vector3.get_zero();
 
-		private Quaternion mSpawnedRotation = Quaternion.identity;
+		private Quaternion mSpawnedRotation = Quaternion.get_identity();
 
 		private Rigidbody mPlayerRigidbody;
 
@@ -34,7 +37,7 @@ namespace BBI.Unity.Game
 		{
 			get
 			{
-				if (mPlayerCollider == null)
+				if ((Object)(object)mPlayerCollider == (Object)null)
 				{
 					mPlayerCollider = FindPlayerCollider(this);
 				}
@@ -46,9 +49,11 @@ namespace BBI.Unity.Game
 		{
 			get
 			{
-				if (!(mEntityBlueprintComponent != null))
+				//IL_000e: Unknown result type (might be due to invalid IL or missing references)
+				//IL_001a: Unknown result type (might be due to invalid IL or missing references)
+				if (!((Object)(object)mEntityBlueprintComponent != (Object)null))
 				{
-					return Entity.Null;
+					return Entity.get_Null();
 				}
 				return mEntityBlueprintComponent.Entity;
 			}
@@ -56,54 +61,80 @@ namespace BBI.Unity.Game
 
 		public virtual void InitializeECSData(EntityManager entityManager, Entity entity)
 		{
-			if (mVitalityController != null)
+			//IL_0014: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0015: Unknown result type (might be due to invalid IL or missing references)
+			//IL_001d: Unknown result type (might be due to invalid IL or missing references)
+			//IL_002e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0033: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0038: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0045: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_005d: Unknown result type (might be due to invalid IL or missing references)
+			//IL_005e: Unknown result type (might be due to invalid IL or missing references)
+			if ((Object)(object)mVitalityController != (Object)null)
 			{
 				mVitalityController.InitializeECSData(entityManager, entity);
 			}
-			entityManager.AddComponentData(entity, new RespawnLocation
+			((EntityManager)(ref entityManager)).AddComponentData<RespawnLocation>(entity, new RespawnLocation
 			{
-				Position = base.transform.position,
-				Rotation = base.transform.rotation
+				Position = float3.op_Implicit(((Component)this).get_transform().get_position()),
+				Rotation = quaternion.op_Implicit(((Component)this).get_transform().get_rotation())
 			});
-			entityManager.AddBuffer<PlayerElementalHistory>(entity);
+			((EntityManager)(ref entityManager)).AddBuffer<PlayerElementalHistory>(entity);
 		}
 
 		private void Awake()
 		{
-			mPlayerRigidbody = GetComponent<Rigidbody>();
-			mVitalityController = GetComponent<VitalityController>();
+			//IL_0043: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0059: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00cb: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00ec: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00f1: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00fd: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0102: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0124: Unknown result type (might be due to invalid IL or missing references)
+			//IL_012f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_013f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_014a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0172: Unknown result type (might be due to invalid IL or missing references)
+			//IL_017d: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0190: Unknown result type (might be due to invalid IL or missing references)
+			//IL_019b: Unknown result type (might be due to invalid IL or missing references)
+			mPlayerRigidbody = ((Component)this).GetComponent<Rigidbody>();
+			mVitalityController = ((Component)this).GetComponent<VitalityController>();
 			Main.EventSystem.Post(new PlayerSpawnedEvent(this));
 			EditorScenePlayer masterScenePlayer = EditorScenePlayer.MasterScenePlayer;
-			if (masterScenePlayer != null)
+			if ((Object)(object)masterScenePlayer != (Object)null)
 			{
-				base.transform.position = masterScenePlayer.transform.position;
-				base.transform.rotation = masterScenePlayer.transform.rotation;
-				if (m_InitialMotionSettings != null && masterScenePlayer.InitialMotionSettings != null)
+				((Component)this).get_transform().set_position(((Component)masterScenePlayer).get_transform().get_position());
+				((Component)this).get_transform().set_rotation(((Component)masterScenePlayer).get_transform().get_rotation());
+				if ((Object)(object)m_InitialMotionSettings != (Object)null && (Object)(object)masterScenePlayer.InitialMotionSettings != (Object)null)
 				{
 					m_InitialMotionSettings.CopySettings(masterScenePlayer.InitialMotionSettings);
 				}
 				mDisableThrust = !masterScenePlayer.ThrustEnabled;
-				Object.Destroy(masterScenePlayer.gameObject);
+				Object.Destroy((Object)(object)((Component)masterScenePlayer).get_gameObject());
 			}
 			if (SceneLoader.Instance.SpawnLocationOverride.HasValue)
 			{
-				base.transform.position = SceneLoader.Instance.SpawnLocationOverride.Value;
+				((Component)this).get_transform().set_position(SceneLoader.Instance.SpawnLocationOverride.Value);
 				SceneLoader.Instance.SpawnLocationOverride = null;
 			}
-			mSpawnedPosition = base.transform.position;
-			mSpawnedRotation = base.transform.rotation;
-			if (EntityBlueprintComponent.TryGetOrAddEntityBlueprint(base.gameObject, out mEntityBlueprintComponent))
+			mSpawnedPosition = ((Component)this).get_transform().get_position();
+			mSpawnedRotation = ((Component)this).get_transform().get_rotation();
+			if (EntityBlueprintComponent.TryGetOrAddEntityBlueprint(((Component)this).get_gameObject(), out mEntityBlueprintComponent))
 			{
 				InitializeECSData(mEntityBlueprintComponent.EntityManager, mEntityBlueprintComponent.Entity);
-				EntityBlueprintComponent.ResetComponentObjectsOnGameObject(mEntityBlueprintComponent.Entity, mEntityBlueprintComponent.EntityManager, base.gameObject);
+				EntityBlueprintComponent.ResetComponentObjectsOnGameObject(mEntityBlueprintComponent.Entity, mEntityBlueprintComponent.EntityManager, ((Component)this).get_gameObject());
 				PlayerProfileService.Instance.Profile.RegisterPlayer(this);
-				bool flag = false;
-				SetGodMode(mEntityBlueprintComponent.Entity, mEntityBlueprintComponent.EntityManager, flag);
-				bool flag2 = false;
-				SetTroutMode(mEntityBlueprintComponent.Entity, mEntityBlueprintComponent.EntityManager, flag2);
+				bool enabled = true;
+				SetGodMode(mEntityBlueprintComponent.Entity, mEntityBlueprintComponent.EntityManager, enabled);
+				bool enabled2 = true;
+				SetTroutMode(mEntityBlueprintComponent.Entity, mEntityBlueprintComponent.EntityManager, enabled2);
 			}
-			bool flag3 = false;
-			SetNoClipMode(PlayerCollider, FindPlayerMotion(this), flag3);
+			bool enabled3 = true;
+			SetNoClipMode(PlayerCollider, FindPlayerMotion(this), enabled3);
 			Main.EventSystem.AddHandler<RespawnEvent>(OnRespawned);
 			Main.EventSystem.AddHandler<CheckpointEvent>(OnCheckpoint);
 			Main.EventSystem.AddHandler<UnlockAbilityEvent>(OnOxygenRegenUnlocked);
@@ -111,14 +142,16 @@ namespace BBI.Unity.Game
 
 		private void Start()
 		{
+			//IL_0068: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0073: Unknown result type (might be due to invalid IL or missing references)
 			PlayerProfileService.Instance.Profile.Inventory?.ReEquipItems();
 			PlayerProfileService.Instance.Profile.ApplyUpgrades();
 			if (mDisableThrust)
 			{
 				Main.EventSystem.Post(ThrustChargeChangedEvent.GetEvent(0f, 0f, ThrustController.ChargeState.Disabled, 100f));
 			}
-			bool flag = SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.FreeMode;
-			SetGodMode(mEntityBlueprintComponent.Entity, mEntityBlueprintComponent.EntityManager, flag);
+			bool enabled = SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.FreeMode;
+			SetGodMode(mEntityBlueprintComponent.Entity, mEntityBlueprintComponent.EntityManager, enabled);
 		}
 
 		private void OnDestroy()
@@ -133,151 +166,209 @@ namespace BBI.Unity.Game
 
 		private void ResetAudioValues()
 		{
-			AkSoundEngine.SetState(PlayerRoomTrackerSystem.sAudioStatePressure, PlayerRoomTrackerSystem.sAudioStateFalse);
+			//IL_0000: Unknown result type (might be due to invalid IL or missing references)
+			//IL_000a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0014: Unknown result type (might be due to invalid IL or missing references)
+			//IL_001f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0038: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0056: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0060: Unknown result type (might be due to invalid IL or missing references)
+			AkSoundEngine.SetState(WwiseShortID.op_Implicit(PlayerRoomTrackerSystem.sAudioStatePressure), WwiseShortID.op_Implicit(PlayerRoomTrackerSystem.sAudioStateFalse));
 			Main.EventSystem.Post(SetRTPCEvent.GetGlobalAndMasterEvent(PlayerRoomTrackerSystem.sAudioParameterPressure, 0f));
 			Main.EventSystem.Post(SetRTPCEvent.GetGlobalAndMasterEvent(FogUpdateSystem.sAudioParameterDirtyAir, 0f));
-			AkSoundEngine.SetState(PlayerRoomTrackerSystem.sAudioStateRoomType, PlayerRoomTrackerSystem.sAudioStateNone);
+			AkSoundEngine.SetState(WwiseShortID.op_Implicit(PlayerRoomTrackerSystem.sAudioStateRoomType), WwiseShortID.op_Implicit(PlayerRoomTrackerSystem.sAudioStateNone));
 		}
 
 		private void OnCheckpoint(CheckpointEvent ev)
 		{
+			//IL_0035: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0042: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0047: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0062: Unknown result type (might be due to invalid IL or missing references)
+			//IL_006f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0074: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0079: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0086: Unknown result type (might be due to invalid IL or missing references)
+			//IL_008b: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0094: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00a6: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00ab: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00b4: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00c6: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00cb: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00d4: Unknown result type (might be due to invalid IL or missing references)
 			mCurrentCheckpoint = ev.Checkpoint;
 			if (EntityBlueprintComponent.IsValid(mEntityBlueprintComponent))
 			{
 				RespawnLocation respawnLocation = default(RespawnLocation);
-				respawnLocation.Position = ((ev.Checkpoint != null) ? ev.Checkpoint.position : mSpawnedPosition);
-				respawnLocation.Rotation = ((ev.Checkpoint != null) ? ev.Checkpoint.rotation : mSpawnedRotation);
-				RespawnLocation componentData = respawnLocation;
-				if (mEntityBlueprintComponent.EntityManager.HasComponent<RespawnPending>(mEntityBlueprintComponent.Entity))
+				respawnLocation.Position = float3.op_Implicit(((Object)(object)ev.Checkpoint != (Object)null) ? ev.Checkpoint.get_position() : mSpawnedPosition);
+				respawnLocation.Rotation = quaternion.op_Implicit(((Object)(object)ev.Checkpoint != (Object)null) ? ev.Checkpoint.get_rotation() : mSpawnedRotation);
+				RespawnLocation respawnLocation2 = respawnLocation;
+				EntityManager entityManager = mEntityBlueprintComponent.EntityManager;
+				if (((EntityManager)(ref entityManager)).HasComponent<RespawnPending>(mEntityBlueprintComponent.Entity))
 				{
-					mEntityBlueprintComponent.EntityManager.SetComponentData(mEntityBlueprintComponent.Entity, componentData);
+					entityManager = mEntityBlueprintComponent.EntityManager;
+					((EntityManager)(ref entityManager)).SetComponentData<RespawnLocation>(mEntityBlueprintComponent.Entity, respawnLocation2);
 				}
 				else
 				{
-					mEntityBlueprintComponent.EntityManager.SetComponentData(mEntityBlueprintComponent.Entity, componentData);
+					entityManager = mEntityBlueprintComponent.EntityManager;
+					((EntityManager)(ref entityManager)).SetComponentData<RespawnLocation>(mEntityBlueprintComponent.Entity, respawnLocation2);
 				}
 			}
 		}
 
 		private void OnOxygenRegenUnlocked(UnlockAbilityEvent ev)
 		{
-			if (ev.Ability == UnlockAbilityID.OxygenTankRecharge && EntityBlueprintComponent.IsValid(mEntityBlueprintComponent) && !mEntityBlueprintComponent.EntityManager.HasComponent<UnlockOxygenRegenComponent>(Entity))
+			//IL_0020: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0025: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0029: Unknown result type (might be due to invalid IL or missing references)
+			//IL_003b: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0040: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0049: Unknown result type (might be due to invalid IL or missing references)
+			if (ev.Ability == UnlockAbilityID.OxygenTankRecharge && EntityBlueprintComponent.IsValid(mEntityBlueprintComponent))
 			{
-				mEntityBlueprintComponent.EntityManager.AddComponentData(mEntityBlueprintComponent.Entity, default(UnlockOxygenRegenComponent));
+				EntityManager entityManager = mEntityBlueprintComponent.EntityManager;
+				if (!((EntityManager)(ref entityManager)).HasComponent<UnlockOxygenRegenComponent>(Entity))
+				{
+					entityManager = mEntityBlueprintComponent.EntityManager;
+					((EntityManager)(ref entityManager)).AddComponentData<UnlockOxygenRegenComponent>(mEntityBlueprintComponent.Entity, default(UnlockOxygenRegenComponent));
+				}
 			}
 		}
 
 		private void OnRespawned(RespawnEvent ev)
 		{
-			if (EntityBlueprintComponent.IsValid(mEntityBlueprintComponent) && !mEntityBlueprintComponent.EntityManager.HasComponent<RespawnPending>(mEntityBlueprintComponent.Entity))
+			//IL_0013: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0018: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0021: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0033: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0038: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0041: Unknown result type (might be due to invalid IL or missing references)
+			//IL_006e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0079: Unknown result type (might be due to invalid IL or missing references)
+			if (EntityBlueprintComponent.IsValid(mEntityBlueprintComponent))
 			{
-				mEntityBlueprintComponent.EntityManager.AddComponentData(mEntityBlueprintComponent.Entity, default(RespawnPending));
-				bool flag = SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.FreeMode;
-				SetGodMode(mEntityBlueprintComponent.Entity, mEntityBlueprintComponent.EntityManager, flag);
+				EntityManager entityManager = mEntityBlueprintComponent.EntityManager;
+				if (!((EntityManager)(ref entityManager)).HasComponent<RespawnPending>(mEntityBlueprintComponent.Entity))
+				{
+					entityManager = mEntityBlueprintComponent.EntityManager;
+					((EntityManager)(ref entityManager)).AddComponentData<RespawnPending>(mEntityBlueprintComponent.Entity, default(RespawnPending));
+					bool enabled = SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.FreeMode;
+					SetGodMode(mEntityBlueprintComponent.Entity, mEntityBlueprintComponent.EntityManager, enabled);
+				}
 			}
-			if (mPlayerRigidbody != null)
+			if ((Object)(object)mPlayerRigidbody != (Object)null)
 			{
-				mPlayerRigidbody.interpolation = RigidbodyInterpolation.None;
-				mPlayerRigidbody.collisionDetectionMode = CollisionDetectionMode.Discrete;
-				mPlayerRigidbody.isKinematic = true;
+				mPlayerRigidbody.set_interpolation((RigidbodyInterpolation)0);
+				mPlayerRigidbody.set_collisionDetectionMode((CollisionDetectionMode)0);
+				mPlayerRigidbody.set_isKinematic(true);
 			}
-			StartCoroutine(WaitToRespawnPlayer());
+			((MonoBehaviour)this).StartCoroutine(WaitToRespawnPlayer());
 			ResetAudioValues();
 		}
 
 		private IEnumerator WaitToRespawnPlayer()
 		{
-			yield return new WaitForFixedUpdate();
-			if (mPlayerRigidbody != null)
+			yield return (object)new WaitForFixedUpdate();
+			if ((Object)(object)mPlayerRigidbody != (Object)null)
 			{
-				mPlayerRigidbody.velocity = Vector3.zero;
-				mPlayerRigidbody.angularVelocity = Vector3.zero;
-				mPlayerRigidbody.isKinematic = false;
-				mPlayerRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
-				mPlayerRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+				mPlayerRigidbody.set_velocity(Vector3.get_zero());
+				mPlayerRigidbody.set_angularVelocity(Vector3.get_zero());
+				mPlayerRigidbody.set_isKinematic(false);
+				mPlayerRigidbody.set_interpolation((RigidbodyInterpolation)1);
+				mPlayerRigidbody.set_collisionDetectionMode((CollisionDetectionMode)2);
 			}
 		}
 
 		public static PlayerMotion FindPlayerMotion(Player player)
 		{
-			if (player == null)
+			if ((Object)(object)player == (Object)null)
 			{
 				return null;
 			}
-			return player.GetComponent<PlayerMotion>();
+			return ((Component)player).GetComponent<PlayerMotion>();
 		}
 
 		private static Collider FindPlayerCollider(Player player)
 		{
-			if (player == null)
+			if ((Object)(object)player == (Object)null)
 			{
 				return null;
 			}
-			Collider collider = null;
-			SphereCollider[] componentsInChildren = player.GetComponentsInChildren<SphereCollider>();
+			Collider val = null;
+			SphereCollider[] componentsInChildren = ((Component)player).GetComponentsInChildren<SphereCollider>();
 			if (componentsInChildren != null)
 			{
-				foreach (SphereCollider sphereCollider in componentsInChildren)
+				SphereCollider[] array = componentsInChildren;
+				foreach (SphereCollider val2 in array)
 				{
-					if (sphereCollider.CompareTag("Player"))
+					if (((Component)val2).CompareTag("Player"))
 					{
-						collider = sphereCollider;
+						val = (Collider)(object)val2;
 						break;
 					}
 				}
 			}
-			if (collider == null)
+			if ((Object)(object)val == (Object)null)
 			{
-				CapsuleCollider[] componentsInChildren2 = player.GetComponentsInChildren<CapsuleCollider>();
+				CapsuleCollider[] componentsInChildren2 = ((Component)player).GetComponentsInChildren<CapsuleCollider>();
 				if (componentsInChildren2 != null)
 				{
-					foreach (CapsuleCollider capsuleCollider in componentsInChildren2)
+					CapsuleCollider[] array2 = componentsInChildren2;
+					foreach (CapsuleCollider val3 in array2)
 					{
-						if (capsuleCollider.CompareTag("Player"))
+						if (((Component)val3).CompareTag("Player"))
 						{
-							collider = capsuleCollider;
+							val = (Collider)(object)val3;
 							break;
 						}
 					}
 				}
 			}
-			return collider;
+			return val;
 		}
 
 		public static void SetNoClipMode(Collider collider, PlayerMotion playerMotion, bool enabled)
 		{
-			if (collider != null)
+			if (GlobalOptions.Raw.GetBool("General.NoClipMode") && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
 			{
-				collider.isTrigger = enabled;
-			}
-			if (playerMotion != null)
-			{
+				collider.set_isTrigger(enabled);
 				playerMotion.SetSquishyCollide(!enabled);
 			}
 		}
 
 		public static void SetGodMode(Entity entity, EntityManager entityManager, bool enabled)
 		{
-			if (enabled)
+			//IL_0026: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0038: Unknown result type (might be due to invalid IL or missing references)
+			if (GlobalOptions.Raw.GetBool("General.GodMode") && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
 			{
-				entityManager.AddComponentData(entity, default(Invulnerable));
+				((EntityManager)(ref entityManager)).AddComponentData<Invulnerable>(entity, default(Invulnerable));
 			}
-			else
-			{
-				entityManager.RemoveComponent<Invulnerable>(entity);
-			}
+			((EntityManager)(ref entityManager)).RemoveComponent<Invulnerable>(entity);
 		}
 
 		public static void SetTroutMode(Entity entity, EntityManager entityManager, bool enabled)
 		{
-			if (enabled)
+			//IL_0026: Unknown result type (might be due to invalid IL or missing references)
+			//IL_002f: Unknown result type (might be due to invalid IL or missing references)
+			if (GlobalOptions.Raw.GetBool("General.TroutMode") && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
 			{
-				entityManager.RemoveComponent<ReceiveForceOnDecompression>(entity);
+				((EntityManager)(ref entityManager)).RemoveComponent<ReceiveForceOnDecompression>(entity);
 			}
-			else
-			{
-				entityManager.AddComponentData(entity, default(ReceiveForceOnDecompression));
-			}
+			((EntityManager)(ref entityManager)).AddComponentData<ReceiveForceOnDecompression>(entity, default(ReceiveForceOnDecompression));
 		}
+
+		public Player()
+			: this()
+		{
+		}//IL_0001: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0006: Unknown result type (might be due to invalid IL or missing references)
+		//IL_000c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0011: Unknown result type (might be due to invalid IL or missing references)
+
 	}
 }
