@@ -108,6 +108,8 @@ public class TetherController : MonoBehaviour
 
 	private CandidateHookPoint mReverseCandidateEndAnchor;
 
+	private bool mIsInitialized;
+
 	private CandidateState mCandidateTetherState;
 
 	private List<Tether> mActiveTethers = new List<Tether>();
@@ -196,17 +198,7 @@ public class TetherController : MonoBehaviour
 
 	public bool TetherUnlocked => mTetherUnlocked;
 
-	public bool UnlimitedTethers
-	{
-		get
-		{
-			if (GlobalOptions.Raw.GetBool("General.InfTethers") && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
-			{
-				return mUnlimitedTethers = true;
-			}
-			return mUnlimitedTethers = false;
-		}
-	}
+	public bool UnlimitedTethers => mUnlimitedTethers;
 
 	public int NumAvailableTethers
 	{
@@ -221,6 +213,34 @@ public class TetherController : MonoBehaviour
 			{
 				OnNumTethersChanged(mNumAvailableTethers);
 			}
+			if (IsCareerMode && IsProfileValid)
+			{
+				PlayerProfileService.Instance.Profile.Tethers = mNumAvailableTethers;
+			}
+		}
+	}
+
+	private bool IsCareerMode
+	{
+		get
+		{
+			if (SceneLoader.Instance != null)
+			{
+				return SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.Career;
+			}
+			return false;
+		}
+	}
+
+	private bool IsProfileValid
+	{
+		get
+		{
+			if (PlayerProfileService.Instance != null)
+			{
+				return PlayerProfileService.Instance.Profile != null;
+			}
+			return false;
 		}
 	}
 
@@ -237,7 +257,8 @@ public class TetherController : MonoBehaviour
 		}
 		mData = new TethersBuffableData(m_TethersAsset.Data);
 		mState = TetherState.Ready;
-		NumAvailableTethers = mData.StartingTethers;
+		mMaxTethers = mData.MaxTethers;
+		mIsInitialized = false;
 		if (mData.TetherPrefab == null)
 		{
 			Log.Error(Log.Channel.Gameplay, "Tether prefab is missing.");
@@ -267,6 +288,24 @@ public class TetherController : MonoBehaviour
 		Main.EventSystem.RemoveHandler<EnableUnlimitedTethersEvent>(OnUnlimitedTethersEnabled);
 	}
 
+	private void Initialize()
+	{
+		mMaxTethers = mData.MaxTethers;
+		if (IsCareerMode && IsProfileValid && !PlayerProfileService.Instance.Profile.PendingTetherRefill && PlayerProfileService.Instance.Profile.Tethers != -1)
+		{
+			NumAvailableTethers = PlayerProfileService.Instance.Profile.Tethers;
+		}
+		else
+		{
+			NumAvailableTethers = mMaxTethers;
+			if (IsCareerMode && IsProfileValid && PlayerProfileService.Instance.Profile.PendingTetherRefill)
+			{
+				PlayerProfileService.Instance.Profile.PendingTetherRefill = false;
+			}
+		}
+		mIsInitialized = true;
+	}
+
 	private void Update()
 	{
 		if (mTetherUnlocked)
@@ -275,11 +314,11 @@ public class TetherController : MonoBehaviour
 			{
 				mMaxTethers = 1000;
 				NumAvailableTethers = 1000;
+				mIsInitialized = true;
 			}
-			else if (mMaxTethers != mData.MaxTethers)
+			else if (!mIsInitialized)
 			{
-				mMaxTethers = mData.MaxTethers;
-				NumAvailableTethers = mData.MaxTethers;
+				Initialize();
 			}
 			if (mLifetime != mData.Lifetime)
 			{
@@ -767,6 +806,10 @@ public class TetherController : MonoBehaviour
 		if (State == TetherState.Placing)
 		{
 			ClearTetherState();
+		}
+		if (ev.GameState == GameSession.GameState.Gameplay && ev.PrevGameState == GameSession.GameState.Hab)
+		{
+			mIsInitialized = false;
 		}
 	}
 

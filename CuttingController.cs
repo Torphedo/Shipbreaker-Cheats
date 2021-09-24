@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using BBI.Core.Utility;
-using Carbon.Core;
 using InControl;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -149,6 +148,8 @@ namespace BBI.Unity.Game
 
 		private const float kEdgeDetectionRangeMod = 3f;
 
+		private bool mAnyBelowPowerRating;
+
 		private bool mAnythingInRange;
 
 		[Header("Cutter Asset")]
@@ -190,6 +191,8 @@ namespace BBI.Unity.Game
 		public ICutExecutionData ActiveCutData => mData.BuffableCutExecution;
 
 		public bool AnyValidTargetables => mTargetBuffer.Count > 0;
+
+		public bool AnyBelowPowerRating => mAnyBelowPowerRating;
 
 		public bool AnythingInRange => mAnythingInRange;
 
@@ -420,10 +423,7 @@ namespace BBI.Unity.Game
 
 		private void StartCutting(ICutExecutionData data)
 		{
-			if (!GlobalOptions.Raw.GetBool("General.InfHeat") || SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
-			{
-				mCuttingToolController.AddHeat();
-			}
+			mCuttingToolController.AddHeat();
 			if (!mCuttingToolController.IsOverheated)
 			{
 				mCurrentCutTime = 0f;
@@ -482,7 +482,7 @@ namespace BBI.Unity.Game
 				return false;
 			}
 			mTargetBuffer.Clear();
-			if (TryGetCutLineTargetables(data, cutData, ref mTargetBuffer, out var cutRotation))
+			if (TryGetCutLineTargetables(data, cutData, ref mTargetBuffer, out var cutRotation, out mAnyBelowPowerRating))
 			{
 				Vector3 normalized = Vector3.Cross(LynxCameraController.MainCameraTransform.forward, LynxCameraController.MainCameraTransform.TransformDirection(cutRotation)).normalized;
 				float num = 0f;
@@ -549,13 +549,14 @@ namespace BBI.Unity.Game
 			bool flag = false;
 			for (int i = 0; i < mData.BuffableCutExecution.BuffableCutLines.Count; i++)
 			{
-				flag |= TryGetCutLineTargetables(mData.BuffableCutExecution, mData.BuffableCutExecution.BuffableCutLines[i], ref targetablesOnLine, out var _);
+				flag |= TryGetCutLineTargetables(mData.BuffableCutExecution, mData.BuffableCutExecution.BuffableCutLines[i], ref targetablesOnLine, out var _, out var _);
 			}
 			return flag;
 		}
 
-		private bool TryGetCutLineTargetables(ICutExecutionData data, ICutLineData cutData, ref List<CuttableInfo> targetablesOnLine, out Vector2 cutRotation)
+		private bool TryGetCutLineTargetables(ICutExecutionData data, ICutLineData cutData, ref List<CuttableInfo> targetablesOnLine, out Vector2 cutRotation, out bool anyBelowPowerRating)
 		{
+			anyBelowPowerRating = false;
 			if (LynxCameraController.MainCamera == null)
 			{
 				Debug.LogError("CuttingController failed to get MainCamera");
@@ -578,13 +579,15 @@ namespace BBI.Unity.Game
 					float x = vector.x + (float)LynxCameraController.ScreenWidth * ((0f - num2) * 0.5f + num2 * num5);
 					float y = vector.y + (float)LynxCameraController.ScreenWidth * ((0f - num3) * 0.5f + num3 * num5);
 					Ray ray = LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(x, y));
-					AddHitValidTargetable(ray, rayIndexCenterOffset, data, ref targetablesOnLine);
+					AddHitValidTargetable(ray, rayIndexCenterOffset, data, ref targetablesOnLine, out var anyBelowPowerRating2);
+					anyBelowPowerRating |= anyBelowPowerRating2;
 				}
 			}
 			else
 			{
 				Ray ray2 = LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(vector.x, vector.y));
-				AddHitValidTargetable(ray2, 0, data, ref targetablesOnLine);
+				AddHitValidTargetable(ray2, 0, data, ref targetablesOnLine, out var anyBelowPowerRating3);
+				anyBelowPowerRating |= anyBelowPowerRating3;
 			}
 			bool flag = targetablesOnLine.Count > 0;
 			if (flag)
@@ -659,8 +662,9 @@ namespace BBI.Unity.Game
 			}
 		}
 
-		private void AddHitValidTargetable(Ray ray, int rayIndexCenterOffset, ICutExecutionData data, ref List<CuttableInfo> targetablesOnLine)
+		private void AddHitValidTargetable(Ray ray, int rayIndexCenterOffset, ICutExecutionData data, ref List<CuttableInfo> targetablesOnLine, out bool anyBelowPowerRating)
 		{
+			anyBelowPowerRating = false;
 			if (!Physics.Raycast(ray, out var hitInfo, data.Range, mData.RaycastLayerMask))
 			{
 				return;
@@ -677,7 +681,7 @@ namespace BBI.Unity.Game
 					return;
 				}
 			}
-			if (!TryGetValidTargetable(hitInfo, mData.BuffableCutExecution.PowerRating, out var part))
+			if (!TryGetValidTargetable(hitInfo, mData.BuffableCutExecution.PowerRating, out var part, out anyBelowPowerRating))
 			{
 				return;
 			}
@@ -703,14 +707,17 @@ namespace BBI.Unity.Game
 			}
 		}
 
-		public static bool TryGetValidTargetable(RaycastHit hit, int powerRating, out StructurePart part, bool uiInfo = false)
+		public static bool TryGetValidTargetable(RaycastHit hit, int powerRating, out StructurePart part, out bool anyBelowPowerRating, bool uiInfo = false)
 		{
 			part = hit.collider.transform.GetComponentInParent<StructurePart>();
+			anyBelowPowerRating = false;
 			if (part != null && part.CuttingTargetable != null)
 			{
 				bool flag = part.CuttingTargetable.IsAimCuttable();
 				bool flag2 = part.CuttingTargetable.IsQuickCuttable();
-				if (uiInfo || ((flag || flag2) && !part.CuttingTargetable.IsBelowPowerRating(powerRating)))
+				bool flag3 = part.CuttingTargetable.IsBelowPowerRating(powerRating);
+				anyBelowPowerRating |= flag3;
+				if (uiInfo || ((flag || flag2) && !flag3))
 				{
 					return true;
 				}
@@ -718,9 +725,10 @@ namespace BBI.Unity.Game
 			return false;
 		}
 
-		public bool TryGetTargetableInRange(out StructurePart targetable, bool uiInfo = false)
+		public bool TryGetTargetableInRange(out StructurePart targetable, out bool anyBelowPowerRating, bool uiInfo = false)
 		{
-			if (LynxCameraController.MainCameraTransform != null && Physics.Raycast(LynxCameraController.MainCameraTransform.position, LynxCameraController.MainCameraTransform.forward, out var hitInfo, ActiveCutData.Range, mData.RaycastLayerMask) && TryGetValidTargetable(hitInfo, mData.BuffableCutExecution.PowerRating, out targetable, uiInfo))
+			anyBelowPowerRating = false;
+			if (LynxCameraController.MainCameraTransform != null && Physics.Raycast(LynxCameraController.MainCameraTransform.position, LynxCameraController.MainCameraTransform.forward, out var hitInfo, ActiveCutData.Range, mData.RaycastLayerMask) && TryGetValidTargetable(hitInfo, mData.BuffableCutExecution.PowerRating, out targetable, out anyBelowPowerRating, uiInfo))
 			{
 				return true;
 			}

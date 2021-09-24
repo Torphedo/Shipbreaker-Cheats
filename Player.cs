@@ -1,5 +1,4 @@
 using System.Collections;
-using Carbon.Core;
 using Unity.Entities;
 using UnityEngine;
 
@@ -98,12 +97,12 @@ namespace BBI.Unity.Game
 				InitializeECSData(mEntityBlueprintComponent.EntityManager, mEntityBlueprintComponent.Entity);
 				EntityBlueprintComponent.ResetComponentObjectsOnGameObject(mEntityBlueprintComponent.Entity, mEntityBlueprintComponent.EntityManager, base.gameObject);
 				PlayerProfileService.Instance.Profile.RegisterPlayer(this);
-				bool flag = true;
+				bool flag = false;
 				SetGodMode(mEntityBlueprintComponent.Entity, mEntityBlueprintComponent.EntityManager, flag);
-				bool flag2 = true;
+				bool flag2 = false;
 				SetTroutMode(mEntityBlueprintComponent.Entity, mEntityBlueprintComponent.EntityManager, flag2);
 			}
-			bool flag3 = true;
+			bool flag3 = false;
 			SetNoClipMode(PlayerCollider, FindPlayerMotion(this), flag3);
 			Main.EventSystem.AddHandler<RespawnEvent>(OnRespawned);
 			Main.EventSystem.AddHandler<CheckpointEvent>(OnCheckpoint);
@@ -218,8 +217,7 @@ namespace BBI.Unity.Game
 			SphereCollider[] componentsInChildren = player.GetComponentsInChildren<SphereCollider>();
 			if (componentsInChildren != null)
 			{
-				SphereCollider[] array = componentsInChildren;
-				foreach (SphereCollider sphereCollider in array)
+				foreach (SphereCollider sphereCollider in componentsInChildren)
 				{
 					if (sphereCollider.CompareTag("Player"))
 					{
@@ -233,8 +231,7 @@ namespace BBI.Unity.Game
 				CapsuleCollider[] componentsInChildren2 = player.GetComponentsInChildren<CapsuleCollider>();
 				if (componentsInChildren2 != null)
 				{
-					CapsuleCollider[] array2 = componentsInChildren2;
-					foreach (CapsuleCollider capsuleCollider in array2)
+					foreach (CapsuleCollider capsuleCollider in componentsInChildren2)
 					{
 						if (capsuleCollider.CompareTag("Player"))
 						{
@@ -249,16 +246,19 @@ namespace BBI.Unity.Game
 
 		public static void SetNoClipMode(Collider collider, PlayerMotion playerMotion, bool enabled)
 		{
-			if (GlobalOptions.Raw.GetBool("General.NoClipMode") && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
+			if (collider != null)
 			{
 				collider.isTrigger = enabled;
+			}
+			if (playerMotion != null)
+			{
 				playerMotion.SetSquishyCollide(!enabled);
 			}
 		}
 
 		public static void SetGodMode(Entity entity, EntityManager entityManager, bool enabled)
 		{
-			if (GlobalOptions.Raw.GetBool("General.GodMode") && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
+			if (enabled)
 			{
 				entityManager.AddComponentData(entity, default(Invulnerable));
 			}
@@ -270,11 +270,14 @@ namespace BBI.Unity.Game
 
 		public static void SetTroutMode(Entity entity, EntityManager entityManager, bool enabled)
 		{
-			if (GlobalOptions.Raw.GetBool("General.TroutMode") && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
+			if (enabled)
 			{
 				entityManager.RemoveComponent<ReceiveForceOnDecompression>(entity);
 			}
-			entityManager.AddComponentData(entity, default(ReceiveForceOnDecompression));
+			else
+			{
+				entityManager.AddComponentData(entity, default(ReceiveForceOnDecompression));
+			}
 		}
 	}
 }

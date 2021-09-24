@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Carbon.Audio;
 using Carbon.Audio.Unity;
-using Carbon.Core;
 using Unity.Entities;
 using UnityEngine;
 
@@ -69,17 +68,7 @@ namespace BBI.Unity.Game
 
 			public WwiseShortID DurabilityAudioRTPC => m_DurabilityAudioRTPC.WwiseObjectIDWrapper.ShortID;
 
-			public float DrainMultiplier
-			{
-				get
-				{
-					if (GlobalOptions.Raw.GetBool("General.InfDurability") && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
-					{
-						return m_DefaultDrainMultiplier = 0f;
-					}
-					return m_DefaultDrainMultiplier = 1f;
-				}
-			}
+			public float DrainMultiplier => m_DefaultDrainMultiplier;
 
 			public List<CutterDurabilityDamageDef> CutterDamageDefs => m_CutterDamageDefs;
 

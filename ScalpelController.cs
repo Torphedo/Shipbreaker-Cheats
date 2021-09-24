@@ -1,6 +1,5 @@
 using System;
 using BBI.Core.Utility;
-using Carbon.Core;
 using InControl;
 using Unity.Entities;
 using UnityEngine;
@@ -25,10 +24,6 @@ namespace BBI.Unity.Game
 		private const int kTargetTypeValid = 1;
 
 		private const int kTargetTypeInvalid = 2;
-
-		private float mInstantMelt;
-
-		private float mIgnorePowerRating;
 
 		public IScalpelData Data => mData;
 
@@ -163,16 +158,12 @@ namespace BBI.Unity.Game
 				{
 					Target.Part.TryGetPartMass(out mass);
 				}
-				mInstantMelt = 0f;
-				if (!GlobalOptions.Raw.GetBool("General.InstantMelt") || SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
-				{
-					float num = (mInstantMelt = Target.Part.CuttingTargetable.GetMeltingTime(mass));
-				}
+				float meltingTime = Target.Part.CuttingTargetable.GetMeltingTime(mass);
 				if (entityManager.TryGetComponent<VaporizationComponent>(entity, out var component))
 				{
 					component.ModifiedThisFrame = true;
 					component.VaporizationAmount += Time.deltaTime;
-					component.MaxVaporization = mInstantMelt;
+					component.MaxVaporization = meltingTime;
 					component.Type = VaporizationType.Scalpel;
 					entityManager.SetComponentData(entity, component);
 				}
@@ -182,15 +173,12 @@ namespace BBI.Unity.Game
 					{
 						ModifiedThisFrame = true,
 						VaporizationAmount = Time.deltaTime,
-						MaxVaporization = mInstantMelt,
+						MaxVaporization = meltingTime,
 						Type = VaporizationType.Scalpel
 					});
 				}
 			}
-			if (!GlobalOptions.Raw.GetBool("General.InfHeat") || SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
-			{
-				mCuttingToolController.AddHeat();
-			}
+			mCuttingToolController.AddHeat();
 			mCuttingToolController.DelayCooldown();
 		}
 
@@ -232,12 +220,7 @@ namespace BBI.Unity.Game
 
 		private bool IsValidTargetable(StructurePart part)
 		{
-			mIgnorePowerRating = mData.PowerRating;
-			if (GlobalOptions.Raw.GetBool("General.IgnoreCutGrade") || SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
-			{
-				mIgnorePowerRating = 5f;
-			}
-			if (part != null && part.CuttingTargetable != null && part.CuttingTargetable.IsScalpelCuttable() && mIgnorePowerRating >= (float)part.CuttingTargetable.PowerRating && EntityBlueprintComponent.IsValid(part.EntityBlueprintComponent))
+			if (part != null && part.CuttingTargetable != null && part.CuttingTargetable.IsScalpelCuttable() && mData.PowerRating >= part.CuttingTargetable.PowerRating && EntityBlueprintComponent.IsValid(part.EntityBlueprintComponent))
 			{
 				if (!(part.Group == null))
 				{

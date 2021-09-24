@@ -426,17 +426,6 @@ namespace BBI.Unity.Game
 			LoadBindings(GameplayActionSet.RotateBodyRight);
 			LoadBindings(GameplayActionSet.RotateBodyLeft);
 			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ToggleFramerate, InputControlType.None, new Key[1] { Key.F4 }));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DebugRefillOxygen, InputControlType.None, new Key[1] { Key.F1 }));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DebugRefillThrusters, InputControlType.None, new Key[1] { Key.F2 }));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.GlassMode, InputControlType.None, new Key[1] { Key.F3 }));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DebugMegaCutPlayer, InputControlType.None, new Key[1] { Key.F5 }));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ToggleDebugMenu, InputControlType.None, new Key[1] { Key.F6 }));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ToggleObjectDebugInfo, InputControlType.None, new Key[1] { Key.F7 }));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.ShowDebugControls, InputControlType.None, new Key[1] { Key.F10 }));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DebugResetTimeScale, InputControlType.None, new Key[1] { Key.RightArrow }));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DebugPauseTimeScale, InputControlType.None, new Key[1] { Key.LeftArrow }));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DebugIncrementTimeScale, InputControlType.None, new Key[1] { Key.UpArrow }));
-			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.DebugDecrementTimeScale, InputControlType.None, new Key[1] { Key.DownArrow }));
 			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.EquipmentSelectionExtra01, InputControlType.Action4, new Key[1] { Key.Tab }));
 			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.Flip));
 			mDefaultBindings.Add(new GameplayBindings(GameplayActionSet.Zoom));
@@ -790,9 +779,9 @@ namespace BBI.Unity.Game
 
 		public bool ButtonHolding(PlayerAction action)
 		{
-			if (action.LastState)
+			if (action.LastState && action.IsPressed)
 			{
-				return action.IsPressed;
+				return true;
 			}
 			return false;
 		}
