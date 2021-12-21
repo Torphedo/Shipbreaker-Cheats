@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Carbon.Core;
 using Carbon.Core.Events;
 using Unity.Entities;
 using UnityEngine;
@@ -92,12 +93,12 @@ namespace BBI.Unity.Game
 				this.InitializeECSData(this.mEntityBlueprintComponent.EntityManager, this.mEntityBlueprintComponent.Entity);
 				EntityBlueprintComponent.ResetComponentObjectsOnGameObject(this.mEntityBlueprintComponent.Entity, this.mEntityBlueprintComponent.EntityManager, base.gameObject);
 				PlayerProfileService.Instance.Profile.RegisterPlayer(this);
-				bool enabled = false;
+				bool enabled = true;
 				Player.SetGodMode(this.mEntityBlueprintComponent.Entity, this.mEntityBlueprintComponent.EntityManager, enabled);
-				bool enabled2 = false;
+				bool enabled2 = true;
 				Player.SetTroutMode(this.mEntityBlueprintComponent.Entity, this.mEntityBlueprintComponent.EntityManager, enabled2);
 			}
-			bool enabled3 = false;
+			bool enabled3 = true;
 			Player.SetNoClipMode(this.PlayerCollider, Player.FindPlayerMotion(this), enabled3);
 			Main.EventSystem.AddHandler<RespawnEvent>(new EventHandler<RespawnEvent>(this.OnRespawned));
 			Main.EventSystem.AddHandler<CheckpointEvent>(new EventHandler<CheckpointEvent>(this.OnCheckpoint));
@@ -255,12 +256,9 @@ namespace BBI.Unity.Game
 		// Token: 0x06003AA5 RID: 15013 RVA: 0x00106956 File Offset: 0x00104B56
 		public static void SetNoClipMode(Collider collider, PlayerMotion playerMotion, bool enabled)
 		{
-			if (collider != null)
+			if (GlobalOptions.Raw.GetBool("General.NoClipMode", false) && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
 			{
 				collider.isTrigger = enabled;
-			}
-			if (playerMotion != null)
-			{
 				playerMotion.SetSquishyCollide(!enabled);
 			}
 		}
@@ -268,21 +266,20 @@ namespace BBI.Unity.Game
 		// Token: 0x06003AA6 RID: 15014 RVA: 0x0010697C File Offset: 0x00104B7C
 		public static void SetGodMode(Entity entity, EntityManager entityManager, bool enabled)
 		{
-			if (enabled)
+			entityManager.RemoveComponent<Invulnerable>(entity);
+			if (GlobalOptions.Raw.GetBool("General.GodMode", false) && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
 			{
 				entityManager.AddComponentData<Invulnerable>(entity, default(Invulnerable));
 				return;
 			}
-			entityManager.RemoveComponent<Invulnerable>(entity);
 		}
 
 		// Token: 0x06003AA7 RID: 15015 RVA: 0x001069A8 File Offset: 0x00104BA8
 		public static void SetTroutMode(Entity entity, EntityManager entityManager, bool enabled)
 		{
-			if (enabled)
+			if (GlobalOptions.Raw.GetBool("General.TroutMode", false) && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
 			{
 				entityManager.RemoveComponent<ReceiveForceOnDecompression>(entity);
-				return;
 			}
 			entityManager.AddComponentData<ReceiveForceOnDecompression>(entity, default(ReceiveForceOnDecompression));
 		}

@@ -1,4 +1,5 @@
 using System;
+using Carbon.Core;
 using UnityEngine;
 
 namespace BBI.Unity.Game
@@ -23,6 +24,10 @@ namespace BBI.Unity.Game
 		{
 			get
 			{
+				if (GlobalOptions.Raw.GetBool("General.FreeUpgrades", false))
+				{
+					return this.m_Amount = 0;
+				}
 				return this.m_Amount;
 			}
 		}

@@ -1,5 +1,6 @@
 using System;
 using BBI.Core.Utility;
+using Carbon.Core;
 using InControl;
 using Unity.Entities;
 using UnityEngine;
@@ -162,13 +163,16 @@ namespace BBI.Unity.Game
 				{
 					this.Target.Part.TryGetPartMass(out mass);
 				}
-				float meltingTime = this.Target.Part.CuttingTargetable.GetMeltingTime(mass);
+				if (this.m_MeltTime < 0f || SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
+				{
+					this.m_MeltTime = this.Target.Part.CuttingTargetable.GetMeltingTime(mass);
+				}
 				VaporizationComponent vaporizationComponent;
 				if (entityManager.TryGetComponent(entity, out vaporizationComponent))
 				{
 					vaporizationComponent.ModifiedThisFrame = true;
 					vaporizationComponent.VaporizationAmount += Time.deltaTime;
-					vaporizationComponent.MaxVaporization = meltingTime;
+					vaporizationComponent.MaxVaporization = this.m_MeltTime;
 					vaporizationComponent.Type = VaporizationType.Scalpel;
 					entityManager.SetComponentData<VaporizationComponent>(entity, vaporizationComponent);
 				}
@@ -178,12 +182,15 @@ namespace BBI.Unity.Game
 					{
 						ModifiedThisFrame = true,
 						VaporizationAmount = Time.deltaTime,
-						MaxVaporization = meltingTime,
+						MaxVaporization = this.m_MeltTime,
 						Type = VaporizationType.Scalpel
 					});
 				}
 			}
-			this.mCuttingToolController.AddHeat();
+			if (!GlobalOptions.Raw.GetBool("General.InfHeat", false) || SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
+			{
+				this.mCuttingToolController.AddHeat();
+			}
 			this.mCuttingToolController.DelayCooldown();
 		}
 
@@ -228,7 +235,12 @@ namespace BBI.Unity.Game
 		// Token: 0x06001F18 RID: 7960 RVA: 0x00085188 File Offset: 0x00083388
 		private bool IsValidTargetable(StructurePart part)
 		{
-			return part != null && part.CuttingTargetable != null && part.CuttingTargetable.IsScalpelCuttable() && this.mData.PowerRating >= part.CuttingTargetable.PowerRating && EntityBlueprintComponent.IsValid(part.EntityBlueprintComponent) && (part.Group == null || EntityBlueprintComponent.IsValid(part.Group.EntityBlueprintComponent));
+			this.mSetPowerRating = GlobalOptions.Raw.GetFloat("General.StingerCutGrade", 1f);
+			if (SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
+			{
+				this.mSetPowerRating = (float)this.mData.PowerRating;
+			}
+			return part != null && part.CuttingTargetable != null && part.CuttingTargetable.IsScalpelCuttable() && this.mSetPowerRating >= (float)part.CuttingTargetable.PowerRating && EntityBlueprintComponent.IsValid(part.EntityBlueprintComponent) && (part.Group == null || EntityBlueprintComponent.IsValid(part.Group.EntityBlueprintComponent));
 		}
 
 		// Token: 0x06001F19 RID: 7961 RVA: 0x000851FC File Offset: 0x000833FC
@@ -280,5 +292,11 @@ namespace BBI.Unity.Game
 
 		// Token: 0x0400166C RID: 5740
 		private const int kTargetTypeInvalid = 2;
+
+		// Token: 0x0400234F RID: 9039
+		private float m_MeltTime = GlobalOptions.Raw.GetFloat("General.StingerMeltTime", -1f);
+
+		// Token: 0x04002350 RID: 9040
+		private float mSetPowerRating;
 	}
 }

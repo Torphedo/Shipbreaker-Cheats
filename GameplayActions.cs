@@ -67,6 +67,17 @@ namespace BBI.Unity.Game
 			this.LoadBindings(GameplayActions.GameplayActionSet.RotateBodyRight);
 			this.LoadBindings(GameplayActions.GameplayActionSet.RotateBodyLeft);
 			this.mDefaultBindings.Add(new GameplayActions.GameplayBindings(GameplayActions.GameplayActionSet.ToggleFramerate, 0, new Key[] { 17 }, 0, 0, 0));
+			this.mDefaultBindings.Add(new GameplayActions.GameplayBindings(GameplayActions.GameplayActionSet.DebugRefillOxygen, 0, new Key[] { 14 }, 0, 0, 0));
+			this.mDefaultBindings.Add(new GameplayActions.GameplayBindings(GameplayActions.GameplayActionSet.DebugRefillThrusters, 0, new Key[] { 15 }, 0, 0, 0));
+			this.mDefaultBindings.Add(new GameplayActions.GameplayBindings(GameplayActions.GameplayActionSet.GlassMode, 0, new Key[] { 16 }, 0, 0, 0));
+			this.mDefaultBindings.Add(new GameplayActions.GameplayBindings(GameplayActions.GameplayActionSet.DebugMegaCutPlayer, 0, new Key[] { 18 }, 0, 0, 0));
+			this.mDefaultBindings.Add(new GameplayActions.GameplayBindings(GameplayActions.GameplayActionSet.ToggleDebugMenu, 0, new Key[] { 19 }, 0, 0, 0));
+			this.mDefaultBindings.Add(new GameplayActions.GameplayBindings(GameplayActions.GameplayActionSet.ToggleObjectDebugInfo, 0, new Key[] { 20 }, 0, 0, 0));
+			this.mDefaultBindings.Add(new GameplayActions.GameplayBindings(GameplayActions.GameplayActionSet.ShowDebugControls, 0, new Key[] { 23 }, 0, 0, 0));
+			this.mDefaultBindings.Add(new GameplayActions.GameplayBindings(GameplayActions.GameplayActionSet.DebugResetTimeScale, 0, new Key[] { 84 }, 0, 0, 0));
+			this.mDefaultBindings.Add(new GameplayActions.GameplayBindings(GameplayActions.GameplayActionSet.DebugPauseTimeScale, 0, new Key[] { 83 }, 0, 0, 0));
+			this.mDefaultBindings.Add(new GameplayActions.GameplayBindings(GameplayActions.GameplayActionSet.DebugIncrementTimeScale, 0, new Key[] { 85 }, 0, 0, 0));
+			this.mDefaultBindings.Add(new GameplayActions.GameplayBindings(GameplayActions.GameplayActionSet.DebugDecrementTimeScale, 0, new Key[] { 86 }, 0, 0, 0));
 			this.mDefaultBindings.Add(new GameplayActions.GameplayBindings(GameplayActions.GameplayActionSet.EquipmentSelectionExtra01, 22, new Key[] { 66 }, 0, 0, 0));
 			this.mDefaultBindings.Add(new GameplayActions.GameplayBindings(GameplayActions.GameplayActionSet.Flip, 0, null, 0, 0, 0));
 			this.mDefaultBindings.Add(new GameplayActions.GameplayBindings(GameplayActions.GameplayActionSet.Zoom, 0, null, 0, 0, 0));

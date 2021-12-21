@@ -48,9 +48,13 @@ namespace BBI.Core.Utility
 		{
 			if (LynxControls.Instance != null)
 			{
-				if (LynxControls.Instance.GameplayActions.ShowDebugControls.WasPressed)
+				if (LynxControls.Instance.GameplayActions.ShowDebugControls.WasPressed && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
 				{
 					this.mShowDebugControls = !this.mShowDebugControls;
+				}
+				if (LynxControls.Instance.GameplayActions.ShowDebugControls.WasPressed && SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
+				{
+					this.mShowRaceControls = !this.mShowRaceControls;
 				}
 				if (LynxControls.Instance.GameplayActions.ToggleObjectDebugInfo.WasPressed)
 				{
@@ -91,12 +95,12 @@ namespace BBI.Core.Utility
 		// Token: 0x06000391 RID: 913 RVA: 0x00015D54 File Offset: 0x00013F54
 		private void HandleTimeScaleDebugInput()
 		{
-			if (LynxControls.Instance.GameplayActions.DebugIncrementTimeScale.WasPressed || LynxControls.Instance.GameplayActions.DebugIncrementTimeScale.WasRepeated)
+			if (LynxControls.Instance.GameplayActions.DebugIncrementTimeScale.WasPressed)
 			{
 				Time.timeScale = Mathf.Clamp(Time.timeScale += 0.1f, 0f, 20f);
 				this.mDisplayTimeScale = true;
 			}
-			if (LynxControls.Instance.GameplayActions.DebugDecrementTimeScale.WasPressed || LynxControls.Instance.GameplayActions.DebugDecrementTimeScale.WasRepeated)
+			if (LynxControls.Instance.GameplayActions.DebugDecrementTimeScale.WasPressed)
 			{
 				Time.timeScale = Mathf.Clamp(Time.timeScale -= 0.1f, 0f, 20f);
 				this.mDisplayTimeScale = true;
@@ -110,6 +114,10 @@ namespace BBI.Core.Utility
 			{
 				Time.timeScale = 0f;
 				this.mDisplayTimeScale = true;
+			}
+			if (LynxControls.Instance.GameplayActions.ToggleDebugMenu.WasPressed)
+			{
+				CertificationService.Instance.TryIncreaseCertification(false);
 			}
 		}
 
@@ -131,14 +139,24 @@ namespace BBI.Core.Utility
 			{
 				GUILayout.Label("F1 - Refill Oxygen", Array.Empty<GUILayoutOption>());
 				GUILayout.Label("F2 - Refill Thrusters", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F3 - Glass Mode", Array.Empty<GUILayoutOption>());
 				GUILayout.Label("F4 - Frame Rate Counter", Array.Empty<GUILayoutOption>());
-				GUILayout.Label("F5 - Mega Cut Player", Array.Empty<GUILayoutOption>());
-				GUILayout.Label("F6 - Mega Cut All", Array.Empty<GUILayoutOption>());
-				GUILayout.Label("F9 - Save Game", Array.Empty<GUILayoutOption>());
-				GUILayout.Label("F10 - Load Game", Array.Empty<GUILayoutOption>());
-				GUILayout.Label("I - Invert Axes", Array.Empty<GUILayoutOption>());
-				GUILayout.Label("Alt + Z - Glass Mode", Array.Empty<GUILayoutOption>());
-				GUILayout.Label("Shift + Esc - Return to Front End", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F5 - Mega Cutter", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F6 - Complete Current Certification", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F7 - Toggle Wireframe", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F10 - Show Modded Controls", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("Left Arrow - Pause Time", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("Right Arrow - Reset Game Speed", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("Up Arrow - Increase Game Speed by 0.1x", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("Down Arrow - Decrease Game Speed by 0.1x", Array.Empty<GUILayoutOption>());
+			}
+			if (this.mShowRaceControls)
+			{
+				GUILayout.Label(" ", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F3 - Glass Mode", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F4 - Frame Rate Counter", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F7 - Toggle Wireframe", Array.Empty<GUILayoutOption>());
+				GUILayout.Label("F10 - Show Modded Controls", Array.Empty<GUILayoutOption>());
 			}
 		}
 
@@ -207,5 +225,8 @@ namespace BBI.Core.Utility
 
 		// Token: 0x040003E1 RID: 993
 		public ObjectInfoDebugger ObjectInfoDebugger = new ObjectInfoDebugger();
+
+		// Token: 0x040004CA RID: 1226
+		private bool mShowRaceControls;
 	}
 }

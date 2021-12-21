@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Carbon.Audio;
 using Carbon.Audio.Unity;
+using Carbon.Core;
 using Unity.Entities;
 using UnityEngine;
 
@@ -91,7 +92,11 @@ namespace BBI.Unity.Game
 			{
 				get
 				{
-					return this.m_DefaultDrainMultiplier;
+					if (GlobalOptions.Raw.GetBool("General.InfDurability", false) && SceneLoader.Instance.LastLoadedLevelData.SessionType != GameSession.SessionType.WeeklyShip)
+					{
+						return this.m_DefaultDrainMultiplier = 0f;
+					}
+					return this.m_DefaultDrainMultiplier = 1f;
 				}
 			}
 

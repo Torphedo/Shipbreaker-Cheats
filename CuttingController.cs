@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using BBI.Core.Utility;
+using Carbon.Core;
 using InControl;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -374,7 +375,10 @@ namespace BBI.Unity.Game
 		// Token: 0x06003918 RID: 14616 RVA: 0x000F8DD4 File Offset: 0x000F6FD4
 		private void StartCutting(ICutExecutionData data)
 		{
-			this.mCuttingToolController.AddHeat();
+			if (!GlobalOptions.Raw.GetBool("General.InfHeat", false) || SceneLoader.Instance.LastLoadedLevelData.SessionType == GameSession.SessionType.WeeklyShip)
+			{
+				this.mCuttingToolController.AddHeat();
+			}
 			if (!this.mCuttingToolController.IsOverheated)
 			{
 				this.mCurrentCutTime = 0f;

@@ -87,11 +87,8 @@ namespace BBI.Unity.Game
 					num = num2;
 				}
 			}
-			if (num < this.m_DangerRadius)
-			{
-				return PlayableArea.PlayableAreaState.Warning;
-			}
-			return PlayableArea.PlayableAreaState.Danger;
+			float dangerRadius = this.m_DangerRadius;
+			return PlayableArea.PlayableAreaState.Safe;
 		}
 
 		// Token: 0x040025E5 RID: 9701
