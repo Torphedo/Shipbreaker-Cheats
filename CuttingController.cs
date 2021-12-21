@@ -8,245 +8,179 @@ using UnityEngine;
 
 namespace BBI.Unity.Game
 {
+	// Token: 0x02000A9F RID: 2719
 	public class CuttingController : DebuggableMonoBehaviour
 	{
-		public struct CuttableInfo
+		// Token: 0x17000F4C RID: 3916
+		// (get) Token: 0x060038F8 RID: 14584 RVA: 0x000F8764 File Offset: 0x000F6964
+		public ICutExecutionData ActiveCutData
 		{
-			public StructurePart Component;
-
-			public RaycastHit HitPoint;
-
-			public int RayIndexCenterOffset;
-
-			public CuttableInfo(StructurePart component, RaycastHit hitPoint, int rayIndexCenterOffset)
+			get
 			{
-				Component = component;
-				HitPoint = hitPoint;
-				RayIndexCenterOffset = rayIndexCenterOffset;
+				return this.mData.BuffableCutExecution;
 			}
 		}
 
-		private struct QueuedCuttable
+		// Token: 0x17000F4D RID: 3917
+		// (get) Token: 0x060038F9 RID: 14585 RVA: 0x000F8771 File Offset: 0x000F6971
+		public bool AnyValidTargetables
 		{
-			public StructurePart Component;
-
-			public ForceInfo SplitForce;
-
-			public float SplitGap;
-
-			public ForceInfo ImpactForce;
-
-			public int PowerRating;
-
-			private float mStartTime;
-
-			private float mQueueDelay;
-
-			private Vector3 mLocalHitPoint;
-
-			private Vector3 mLocalPlaneNormal;
-
-			private Vector3 mLocalPlaneTangent;
-
-			private Vector3 mLocalImpactDirection;
-
-			public Vector3 WorldHitPoint => Component.transform.TransformPoint(mLocalHitPoint);
-
-			public Vector3 WorldPlaneNormal => Component.transform.TransformDirection(mLocalPlaneNormal);
-
-			public Vector3 WorldPlaneTangent => Component.transform.TransformDirection(mLocalPlaneTangent);
-
-			public Vector3 ImpactDirection => Component.transform.TransformDirection(mLocalImpactDirection);
-
-			public bool DelayReached => Time.time - mStartTime >= mQueueDelay;
-
-			public QueuedCuttable(StructurePart component, Vector3 worldHitPoint, Vector3 worldNormal, Vector3 worldTangent, ForceInfo splitForce, float splitGap, ForceInfo impactForce, Vector3 impactDirection, int powerRating, float queueDelay)
+			get
 			{
-				Component = component;
-				mLocalHitPoint = Component.transform.InverseTransformPoint(worldHitPoint);
-				mLocalPlaneNormal = Component.transform.InverseTransformDirection(worldNormal);
-				mLocalPlaneTangent = Component.transform.InverseTransformDirection(worldTangent);
-				SplitForce = splitForce;
-				SplitGap = splitGap;
-				ImpactForce = impactForce;
-				PowerRating = powerRating;
-				mLocalImpactDirection = Component.transform.InverseTransformDirection(impactDirection);
-				mQueueDelay = queueDelay;
-				mStartTime = Time.time;
+				return this.mTargetBuffer.Count > 0;
 			}
 		}
 
-		public struct CutReloadInfo
+		// Token: 0x17000F4E RID: 3918
+		// (get) Token: 0x060038FA RID: 14586 RVA: 0x000F8781 File Offset: 0x000F6981
+		public bool AnyBelowPowerRating
 		{
-			public float CoolDownTimer;
-
-			public bool CoolingDown;
-
-			public float CutSpeedTimer;
-
-			public bool IsCutting;
-
-			public void Cut()
+			get
 			{
-				CutSpeedTimer = 0f;
-				IsCutting = true;
-				CoolingDown = true;
-				CoolDownTimer = 0f;
+				return this.mAnyBelowPowerRating;
 			}
 		}
 
-		public struct EdgeDetectionPoint
+		// Token: 0x17000F4F RID: 3919
+		// (get) Token: 0x060038FB RID: 14587 RVA: 0x000F8789 File Offset: 0x000F6989
+		public bool AnythingInRange
 		{
-			public enum PointState
+			get
 			{
-				None,
-				Valid,
-				Invalid
-			}
-
-			public Vector3 ScreenPosition;
-
-			public PointState State;
-		}
-
-		public struct EdgeDetectionPointList
-		{
-			public EdgeDetectionPoint[] Points;
-
-			public int FirstHitIndex;
-
-			public int LastHitIndex;
-
-			public Vector3 FirstHitScreenPoint => Points[FirstHitIndex].ScreenPosition;
-
-			public Vector3 LastHitScreenPoint => Points[LastHitIndex].ScreenPosition;
-
-			public bool FirstIndexInRange
-			{
-				get
-				{
-					if (FirstHitIndex >= 0)
-					{
-						return FirstHitIndex < Points.Length;
-					}
-					return false;
-				}
-			}
-
-			public bool LastIndexInRange
-			{
-				get
-				{
-					if (LastHitIndex >= 0)
-					{
-						return LastHitIndex < Points.Length;
-					}
-					return false;
-				}
+				return this.mAnythingInRange;
 			}
 		}
 
-		private const float kEdgeDetectionRangeMod = 3f;
+		// Token: 0x17000F50 RID: 3920
+		// (get) Token: 0x060038FC RID: 14588 RVA: 0x000F8791 File Offset: 0x000F6991
+		public Vector2 CutRotation
+		{
+			get
+			{
+				return this.mCutRotation;
+			}
+		}
 
-		private bool mAnyBelowPowerRating;
-
-		private bool mAnythingInRange;
-
-		[Header("Cutter Asset")]
-		[SerializeField]
-		private CutterAsset m_CutterAsset;
-
-		[Header("Player Hookups")]
-		[SerializeField]
-		private Rigidbody m_PlayerRigidbody;
-
-		private ICutterData mData;
-
-		private Vector2 mCutRotation = Vector2.right;
-
-		private List<CuttableInfo> mTargetBuffer = new List<CuttableInfo>();
-
-		private List<QueuedCuttable> mQueuedCuttables = new List<QueuedCuttable>();
-
-		private EdgeDetectionPointList mEdgeDetectionPoints;
-
-		private CutReloadInfo mCutReloadInfo;
-
-		private bool mHorizontalCutNext = true;
-
-		private Plane mCutSplitPlaneBuffer;
-
-		private Plane[] mSplitPlanesArrayBuffer = new Plane[1];
-
-		private Vector3[] mSplitTangentArrayBuffer = new Vector3[1];
-
-		private float mCurrentCutTime;
-
-		private float mMaxCutDelay;
-
-		private bool mAnySuccessfulCuts;
-
-		private CuttingToolController mCuttingToolController;
-
-		public ICutExecutionData ActiveCutData => mData.BuffableCutExecution;
-
-		public bool AnyValidTargetables => mTargetBuffer.Count > 0;
-
-		public bool AnyBelowPowerRating => mAnyBelowPowerRating;
-
-		public bool AnythingInRange => mAnythingInRange;
-
-		public Vector2 CutRotation => mCutRotation;
-
+		// Token: 0x17000F51 RID: 3921
+		// (get) Token: 0x060038FD RID: 14589 RVA: 0x000F8799 File Offset: 0x000F6999
+		// (set) Token: 0x060038FE RID: 14590 RVA: 0x000F87A1 File Offset: 0x000F69A1
 		public float LastMinCutLength { get; private set; }
 
-		public float CutTravelDuration => mData.CutTravelDuration;
+		// Token: 0x17000F52 RID: 3922
+		// (get) Token: 0x060038FF RID: 14591 RVA: 0x000F87AA File Offset: 0x000F69AA
+		public float CutTravelDuration
+		{
+			get
+			{
+				return this.mData.CutTravelDuration;
+			}
+		}
 
-		public bool IsCutting => mCuttingToolController.State == CuttingState.Cutting;
+		// Token: 0x17000F53 RID: 3923
+		// (get) Token: 0x06003900 RID: 14592 RVA: 0x000F87B7 File Offset: 0x000F69B7
+		public bool IsCutting
+		{
+			get
+			{
+				return this.mCuttingToolController.State == CuttingState.Cutting;
+			}
+		}
 
-		public bool IsDisabled => mCuttingToolController.State == CuttingState.Disabled;
+		// Token: 0x17000F54 RID: 3924
+		// (get) Token: 0x06003901 RID: 14593 RVA: 0x000F87C7 File Offset: 0x000F69C7
+		public bool IsDisabled
+		{
+			get
+			{
+				return this.mCuttingToolController.State == CuttingState.Disabled;
+			}
+		}
 
+		// Token: 0x17000F55 RID: 3925
+		// (get) Token: 0x06003902 RID: 14594 RVA: 0x000F87D7 File Offset: 0x000F69D7
+		// (set) Token: 0x06003903 RID: 14595 RVA: 0x000F87DF File Offset: 0x000F69DF
 		public bool CanBeUnequipped { get; set; }
 
-		public LayerMask RaycastLayerMask => mData.RaycastLayerMask;
+		// Token: 0x17000F56 RID: 3926
+		// (get) Token: 0x06003904 RID: 14596 RVA: 0x000F87E8 File Offset: 0x000F69E8
+		public LayerMask RaycastLayerMask
+		{
+			get
+			{
+				return this.mData.RaycastLayerMask;
+			}
+		}
 
-		public bool IsCurrentModeReady => !mCutReloadInfo.CoolingDown;
+		// Token: 0x17000F57 RID: 3927
+		// (get) Token: 0x06003905 RID: 14597 RVA: 0x000F87F5 File Offset: 0x000F69F5
+		public bool IsCurrentModeReady
+		{
+			get
+			{
+				return !this.mCutReloadInfo.CoolingDown;
+			}
+		}
 
-		public bool IsCoolingDown => mCutReloadInfo.CoolingDown;
+		// Token: 0x17000F58 RID: 3928
+		// (get) Token: 0x06003906 RID: 14598 RVA: 0x000F8805 File Offset: 0x000F6A05
+		public bool IsCoolingDown
+		{
+			get
+			{
+				return this.mCutReloadInfo.CoolingDown;
+			}
+		}
 
-		public EdgeDetectionPointList EdgeDetectionPoints => mEdgeDetectionPoints;
+		// Token: 0x17000F59 RID: 3929
+		// (get) Token: 0x06003907 RID: 14599 RVA: 0x000F8812 File Offset: 0x000F6A12
+		public CuttingController.EdgeDetectionPointList EdgeDetectionPoints
+		{
+			get
+			{
+				return this.mEdgeDetectionPoints;
+			}
+		}
 
-		public ICutterData BuffableCutterData => mData;
+		// Token: 0x17000F5A RID: 3930
+		// (get) Token: 0x06003908 RID: 14600 RVA: 0x000F881A File Offset: 0x000F6A1A
+		public ICutterData BuffableCutterData
+		{
+			get
+			{
+				return this.mData;
+			}
+		}
 
+		// Token: 0x17000F5B RID: 3931
+		// (get) Token: 0x06003909 RID: 14601 RVA: 0x000F8824 File Offset: 0x000F6A24
 		public float CurrentRemainingCooldownNormalized
 		{
 			get
 			{
 				float result = 0f;
-				if (mCutReloadInfo.CoolingDown)
+				if (this.mCutReloadInfo.CoolingDown)
 				{
-					result = mCutReloadInfo.CoolDownTimer / mData.BuffableCutExecution.RateOfFire;
+					result = this.mCutReloadInfo.CoolDownTimer / this.mData.BuffableCutExecution.RateOfFire;
 				}
 				return result;
 			}
 		}
 
+		// Token: 0x17000F5C RID: 3932
+		// (get) Token: 0x0600390A RID: 14602 RVA: 0x000F8862 File Offset: 0x000F6A62
 		public bool IsCurrentEquipment
 		{
 			get
 			{
-				if (mCuttingToolController.EquipementController.CurrentEquipment == EquipmentController.Equipment.CuttingTool)
-				{
-					return mCuttingToolController.CurrentMode == CuttingToolController.CutterMode.Cutter;
-				}
-				return false;
+				return this.mCuttingToolController.EquipementController.CurrentEquipment == EquipmentController.Equipment.CuttingTool && this.mCuttingToolController.CurrentMode == CuttingToolController.CutterMode.Cutter;
 			}
 		}
 
+		// Token: 0x0600390B RID: 14603 RVA: 0x000F8888 File Offset: 0x000F6A88
 		private void Awake()
 		{
-			mCuttingToolController = GetComponentInParent<CuttingToolController>();
-			if (mCuttingToolController == null)
+			this.mCuttingToolController = base.GetComponentInParent<CuttingToolController>();
+			if (this.mCuttingToolController == null)
 			{
 				Debug.LogError("[CuttingTool] Unable to find CuttingToolController. Disabling.");
 				base.enabled = false;
@@ -255,225 +189,246 @@ namespace BBI.Unity.Game
 			EditorScenePlayer masterScenePlayer = EditorScenePlayer.MasterScenePlayer;
 			if (masterScenePlayer != null && masterScenePlayer.CutterAsset != null)
 			{
-				m_CutterAsset = masterScenePlayer.CutterAsset;
+				this.m_CutterAsset = masterScenePlayer.CutterAsset;
 			}
-			if (m_CutterAsset == null)
+			if (this.m_CutterAsset == null)
 			{
 				Debug.LogError("Cutter Asset is missing.");
 			}
-			mData = new CutterBuffableData(m_CutterAsset.Data);
-			if (mData.BuffableCutExecution == null)
+			this.mData = new CutterBuffableData(this.m_CutterAsset.Data);
+			if (this.mData.BuffableCutExecution == null)
 			{
 				Debug.LogError("No buffable cut executions found.");
 			}
-			mCutReloadInfo = default(CutReloadInfo);
-			CanBeUnequipped = true;
-			mCutRotation = Vector3.right;
-			mEdgeDetectionPoints.Points = new EdgeDetectionPoint[(int)(mData.EdgeDetectionPointDensity * 100f)];
+			this.mCutReloadInfo = default(CuttingController.CutReloadInfo);
+			this.CanBeUnequipped = true;
+			this.mCutRotation = Vector3.right;
+			this.mEdgeDetectionPoints.Points = new CuttingController.EdgeDetectionPoint[(int)(this.mData.EdgeDetectionPointDensity * 100f)];
 		}
 
+		// Token: 0x0600390C RID: 14604 RVA: 0x000F8974 File Offset: 0x000F6B74
 		private void Start()
 		{
 			Main.EventSystem.Post(RegisterEvent<CuttingController>.Register(this));
 		}
 
+		// Token: 0x0600390D RID: 14605 RVA: 0x000F8986 File Offset: 0x000F6B86
 		private void OnDestroy()
 		{
 			Main.EventSystem.Post(RegisterEvent<CuttingController>.Deregister(this));
 		}
 
+		// Token: 0x0600390E RID: 14606 RVA: 0x000F8998 File Offset: 0x000F6B98
 		public void UpdateCutter()
 		{
-			TryGetTargetables(ref mTargetBuffer);
-			switch (mCuttingToolController.State)
+			this.TryGetTargetables(ref this.mTargetBuffer);
+			CuttingState state = this.mCuttingToolController.State;
+			if (state != CuttingState.Ready)
 			{
-			case CuttingState.Ready:
-				HandleCuttingReady();
-				break;
-			case CuttingState.Disabled:
-				HandleCutterDisabled();
-				break;
-			}
-			if (IsCurrentEquipment && LynxControls.Instance.GameplayActions.CutterAltFire.WasPressed)
-			{
-				if (m_CutterAsset.Data.SwapCutterAngle != null)
+				if (state == CuttingState.Disabled)
 				{
-					Main.EventSystem.Post(PlayerActionTrackerEvent.GetEvent(m_CutterAsset.Data.SwapCutterAngle));
+					this.HandleCutterDisabled();
 				}
-				mHorizontalCutNext = !mHorizontalCutNext;
-				mCutRotation = (mHorizontalCutNext ? Vector2.right : Vector2.up);
+			}
+			else
+			{
+				this.HandleCuttingReady();
+			}
+			if (this.IsCurrentEquipment && LynxControls.Instance.GameplayActions.CutterAltFire.WasPressed)
+			{
+				if (this.m_CutterAsset.Data.SwapCutterAngle != null)
+				{
+					Main.EventSystem.Post(PlayerActionTrackerEvent.GetEvent(this.m_CutterAsset.Data.SwapCutterAngle, MathUtility.OperationType.Add, 1));
+				}
+				this.mHorizontalCutNext = !this.mHorizontalCutNext;
+				this.mCutRotation = (this.mHorizontalCutNext ? Vector2.right : Vector2.up);
 			}
 		}
 
+		// Token: 0x0600390F RID: 14607 RVA: 0x000F8A56 File Offset: 0x000F6C56
 		public void UpdateCutterPassive()
 		{
-			HandleCutSpeed();
-			HandleCoolingDown();
+			this.HandleCutSpeed();
+			this.HandleCoolingDown();
 		}
 
+		// Token: 0x06003910 RID: 14608 RVA: 0x000F8A64 File Offset: 0x000F6C64
 		public void FixedUpdateCutter()
 		{
-			CuttingState state = mCuttingToolController.State;
+			CuttingState state = this.mCuttingToolController.State;
 			if (state == CuttingState.Cutting)
 			{
-				HandleCutting();
+				this.HandleCutting();
 			}
 		}
 
+		// Token: 0x06003911 RID: 14609 RVA: 0x000F8A87 File Offset: 0x000F6C87
 		public void FixedUpdateCutterPassive()
 		{
-			HandleQueuedCuttables();
+			this.HandleQueuedCuttables();
 		}
 
+		// Token: 0x06003912 RID: 14610 RVA: 0x000F8A90 File Offset: 0x000F6C90
 		public void OnStateChanged(CuttingState newState)
 		{
 			switch (newState)
 			{
 			case CuttingState.Ready:
-				mTargetBuffer.Clear();
-				CanBeUnequipped = true;
+				this.mTargetBuffer.Clear();
+				this.CanBeUnequipped = true;
 				InputManager.ActiveDevice.StopVibration();
-				mCutRotation = (mHorizontalCutNext ? Vector2.right : Vector2.up);
+				this.mCutRotation = (this.mHorizontalCutNext ? Vector2.right : Vector2.up);
 				Main.EventSystem.Post(CuttingChangedEvent.GetEvent(CuttingChangedEvent.CutState.Ready));
-				break;
+				return;
+			case CuttingState.Cutting:
+				this.mCuttingToolController.EquipCutter();
+				this.CanBeUnequipped = false;
+				this.mCutRotation = (this.mHorizontalCutNext ? Vector2.right : Vector2.up);
+				this.StartCutting(this.mData.BuffableCutExecution);
+				return;
 			case CuttingState.Disabled:
 				InputManager.ActiveDevice.StopVibration();
-				CanBeUnequipped = true;
+				this.CanBeUnequipped = true;
 				Main.EventSystem.Post(CuttingChangedEvent.GetEvent(CuttingChangedEvent.CutState.Disabled));
-				break;
-			case CuttingState.Cutting:
-				mCuttingToolController.EquipCutter();
-				CanBeUnequipped = false;
-				mCutRotation = (mHorizontalCutNext ? Vector2.right : Vector2.up);
-				StartCutting(mData.BuffableCutExecution);
-				break;
+				return;
+			default:
+				return;
 			}
 		}
 
+		// Token: 0x06003913 RID: 14611 RVA: 0x000F8B58 File Offset: 0x000F6D58
 		private void HandleQueuedCuttables()
 		{
-			for (int num = mQueuedCuttables.Count - 1; num >= 0; num--)
+			for (int i = this.mQueuedCuttables.Count - 1; i >= 0; i--)
 			{
-				QueuedCuttable queuedCuttable = mQueuedCuttables[num];
+				CuttingController.QueuedCuttable queuedCuttable = this.mQueuedCuttables[i];
 				if (queuedCuttable.Component != null)
 				{
 					if (queuedCuttable.DelayReached)
 					{
-						mQueuedCuttables.RemoveAt(num);
-						CutStructurePart(queuedCuttable.Component, queuedCuttable.WorldHitPoint, queuedCuttable.WorldPlaneNormal, queuedCuttable.WorldPlaneTangent, queuedCuttable.SplitForce, queuedCuttable.SplitGap, queuedCuttable.ImpactForce, queuedCuttable.ImpactDirection, queuedCuttable.PowerRating);
+						this.mQueuedCuttables.RemoveAt(i);
+						this.CutStructurePart(queuedCuttable.Component, queuedCuttable.WorldHitPoint, queuedCuttable.WorldPlaneNormal, queuedCuttable.WorldPlaneTangent, queuedCuttable.SplitForce, queuedCuttable.SplitGap, queuedCuttable.ImpactForce, queuedCuttable.ImpactDirection, queuedCuttable.PowerRating);
 					}
 				}
 				else
 				{
-					mQueuedCuttables.RemoveAt(num);
+					this.mQueuedCuttables.RemoveAt(i);
 				}
 			}
 		}
 
+		// Token: 0x06003914 RID: 14612 RVA: 0x000F8C01 File Offset: 0x000F6E01
 		private void HandleCuttingReady()
 		{
-			if (IsCurrentEquipment && IsCurrentModeReady && LynxControls.Instance.GameplayActions.CutterFire.WasPressed)
+			if (this.IsCurrentEquipment && this.IsCurrentModeReady && LynxControls.Instance.GameplayActions.CutterFire.WasPressed)
 			{
-				mCuttingToolController.SetState(CuttingState.Cutting);
+				this.mCuttingToolController.SetState(CuttingState.Cutting);
 			}
 		}
 
+		// Token: 0x06003915 RID: 14613 RVA: 0x000F8C38 File Offset: 0x000F6E38
 		private void HandleCutterDisabled()
 		{
-			if (IsCurrentEquipment && LynxControls.Instance.GameplayActions.CutterFire.WasPressed)
+			if (this.IsCurrentEquipment && LynxControls.Instance.GameplayActions.CutterFire.WasPressed)
 			{
-				mCuttingToolController.EquipCutter();
-				Main.EventSystem.Post(MasterSFXEvent.GetEvent(mCuttingToolController.Data.CutDeniedAudioEvent));
+				this.mCuttingToolController.EquipCutter();
+				Main.EventSystem.Post(MasterSFXEvent.GetEvent(this.mCuttingToolController.Data.CutDeniedAudioEvent));
 			}
 		}
 
+		// Token: 0x06003916 RID: 14614 RVA: 0x000F8C90 File Offset: 0x000F6E90
 		private void HandleCutSpeed()
 		{
-			if (!mCutReloadInfo.IsCutting)
+			if (this.mCutReloadInfo.IsCutting)
 			{
-				return;
-			}
-			float amount = Mathf.Lerp(mData.BuffableCutExecution.ControllerVibrationIntensity.Min, mData.BuffableCutExecution.ControllerVibrationIntensity.Max, mCuttingToolController.CurrentHeatPercent);
-			InputManager.ActiveDevice.Vibrate(LynxControls.Instance.GetVibrationIntensity(amount));
-			mCutReloadInfo.CutSpeedTimer += Time.deltaTime;
-			if (mCutReloadInfo.CutSpeedTimer >= mData.CutTravelDuration)
-			{
-				mCutReloadInfo.CutSpeedTimer = 0f;
-				mCutReloadInfo.IsCutting = false;
-				InputManager.ActiveDevice.StopVibration();
-				if (mCuttingToolController.CurrentMode != CuttingToolController.CutterMode.Scalpel)
+				float amount = Mathf.Lerp(this.mData.BuffableCutExecution.ControllerVibrationIntensity.Min, this.mData.BuffableCutExecution.ControllerVibrationIntensity.Max, this.mCuttingToolController.CurrentHeatPercent);
+				InputManager.ActiveDevice.Vibrate(LynxControls.Instance.GetVibrationIntensity(amount));
+				this.mCutReloadInfo.CutSpeedTimer = this.mCutReloadInfo.CutSpeedTimer + Time.deltaTime;
+				if (this.mCutReloadInfo.CutSpeedTimer >= this.mData.CutTravelDuration)
 				{
-					mCuttingToolController.SetState(CuttingState.Ready);
+					this.mCutReloadInfo.CutSpeedTimer = 0f;
+					this.mCutReloadInfo.IsCutting = false;
+					InputManager.ActiveDevice.StopVibration();
+					if (this.mCuttingToolController.CurrentMode != CuttingToolController.CutterMode.Scalpel)
+					{
+						this.mCuttingToolController.SetState(CuttingState.Ready);
+					}
 				}
 			}
 		}
 
+		// Token: 0x06003917 RID: 14615 RVA: 0x000F8D6C File Offset: 0x000F6F6C
 		private void HandleCoolingDown()
 		{
-			if (mCutReloadInfo.CoolingDown)
+			if (this.mCutReloadInfo.CoolingDown)
 			{
-				mCutReloadInfo.CoolDownTimer += Time.deltaTime;
-				if (mCutReloadInfo.CoolDownTimer >= mData.BuffableCutExecution.RateOfFire)
+				this.mCutReloadInfo.CoolDownTimer = this.mCutReloadInfo.CoolDownTimer + Time.deltaTime;
+				if (this.mCutReloadInfo.CoolDownTimer >= this.mData.BuffableCutExecution.RateOfFire)
 				{
-					mCutReloadInfo.CoolingDown = false;
-					mCutReloadInfo.CoolDownTimer = 0f;
+					this.mCutReloadInfo.CoolingDown = false;
+					this.mCutReloadInfo.CoolDownTimer = 0f;
 				}
 			}
 		}
 
+		// Token: 0x06003918 RID: 14616 RVA: 0x000F8DD4 File Offset: 0x000F6FD4
 		private void StartCutting(ICutExecutionData data)
 		{
-			mCuttingToolController.AddHeat();
-			if (!mCuttingToolController.IsOverheated)
+			this.mCuttingToolController.AddHeat();
+			if (!this.mCuttingToolController.IsOverheated)
 			{
-				mCurrentCutTime = 0f;
-				mMaxCutDelay = 0f;
-				for (int i = 0; i < mData.BuffableCutExecution.BuffableCutLines.Count; i++)
+				this.mCurrentCutTime = 0f;
+				this.mMaxCutDelay = 0f;
+				for (int i = 0; i < this.mData.BuffableCutExecution.BuffableCutLines.Count; i++)
 				{
-					mMaxCutDelay = Mathf.Max(mMaxCutDelay, mData.BuffableCutExecution.BuffableCutLines[i].Delay);
+					this.mMaxCutDelay = Mathf.Max(this.mMaxCutDelay, this.mData.BuffableCutExecution.BuffableCutLines[i].Delay);
 				}
-				mCuttingToolController.DelayCooldown();
+				this.mCuttingToolController.DelayCooldown();
 			}
 		}
 
+		// Token: 0x06003919 RID: 14617 RVA: 0x000F8E68 File Offset: 0x000F7068
 		private void ApplyRecoilForce(ForceInfo recoilForce)
 		{
-			if (m_PlayerRigidbody != null)
+			if (this.m_PlayerRigidbody != null)
 			{
-				Vector3 force = -m_PlayerRigidbody.transform.forward * recoilForce.Force;
-				m_PlayerRigidbody.AddForce(force, recoilForce.ForceMode);
+				Vector3 vector = -this.m_PlayerRigidbody.transform.forward * recoilForce.Force;
+				this.m_PlayerRigidbody.AddForce(vector, recoilForce.ForceMode);
 			}
 		}
 
+		// Token: 0x0600391A RID: 14618 RVA: 0x000F8EB8 File Offset: 0x000F70B8
 		private void HandleCutting()
 		{
-			float num = mCurrentCutTime + Time.deltaTime;
-			for (int i = 0; i < mData.BuffableCutExecution.BuffableCutLines.Count; i++)
+			float num = this.mCurrentCutTime + Time.deltaTime;
+			for (int i = 0; i < this.mData.BuffableCutExecution.BuffableCutLines.Count; i++)
 			{
-				CutLineBuffableData cutLineBuffableData = mData.BuffableCutExecution.BuffableCutLines[i];
-				if (cutLineBuffableData.Delay >= mCurrentCutTime && cutLineBuffableData.Delay < num)
+				CutLineBuffableData cutLineBuffableData = this.mData.BuffableCutExecution.BuffableCutLines[i];
+				if (cutLineBuffableData.Delay >= this.mCurrentCutTime && cutLineBuffableData.Delay < num)
 				{
-					mAnySuccessfulCuts |= TryPerformCut(mData.BuffableCutExecution, cutLineBuffableData);
+					this.mAnySuccessfulCuts |= this.TryPerformCut(this.mData.BuffableCutExecution, cutLineBuffableData);
 				}
 			}
-			mCurrentCutTime = num;
-			if (mCurrentCutTime > mMaxCutDelay)
+			this.mCurrentCutTime = num;
+			if (this.mCurrentCutTime > this.mMaxCutDelay)
 			{
-				CompleteCutting();
+				this.CompleteCutting();
 			}
 		}
 
+		// Token: 0x0600391B RID: 14619 RVA: 0x000F8F5C File Offset: 0x000F715C
 		private void CompleteCutting()
 		{
-			if (mData.AutoAlternate)
+			if (this.mData.AutoAlternate)
 			{
-				mHorizontalCutNext = !mHorizontalCutNext;
-				Main.EventSystem.Post(MasterSFXEvent.GetEvent(mData.OrientationChangeAudioEvent));
+				this.mHorizontalCutNext = !this.mHorizontalCutNext;
+				Main.EventSystem.Post(MasterSFXEvent.GetEvent(this.mData.OrientationChangeAudioEvent));
 			}
-			mAnySuccessfulCuts = false;
-			CanBeUnequipped = true;
+			this.mAnySuccessfulCuts = false;
+			this.CanBeUnequipped = true;
 		}
 
+		// Token: 0x0600391C RID: 14620 RVA: 0x000F8FB0 File Offset: 0x000F71B0
 		private bool TryPerformCut(ICutExecutionData data, ICutLineData cutData)
 		{
 			if (LynxCameraController.MainCamera == null)
@@ -481,80 +436,87 @@ namespace BBI.Unity.Game
 				Debug.LogError("CuttingController failed to get MainCamera");
 				return false;
 			}
-			mTargetBuffer.Clear();
-			if (TryGetCutLineTargetables(data, cutData, ref mTargetBuffer, out var cutRotation, out mAnyBelowPowerRating))
+			this.mTargetBuffer.Clear();
+			Vector2 vector;
+			if (this.TryGetCutLineTargetables(data, cutData, ref this.mTargetBuffer, out vector, out this.mAnyBelowPowerRating))
 			{
-				Vector3 normalized = Vector3.Cross(LynxCameraController.MainCameraTransform.forward, LynxCameraController.MainCameraTransform.TransformDirection(cutRotation)).normalized;
+				Vector3 normalized = Vector3.Cross(LynxCameraController.MainCameraTransform.forward, LynxCameraController.MainCameraTransform.TransformDirection(vector)).normalized;
 				float num = 0f;
 				ForceInfo splitForce = cutData.SplitForce;
 				float splitGap = cutData.SplitGap;
 				ForceInfo impactForce = cutData.ImpactForce;
-				Vector3 forward = m_PlayerRigidbody.transform.forward;
+				Vector3 forward = this.m_PlayerRigidbody.transform.forward;
 				int num2 = 0;
-				if (mTargetBuffer.Count > 0)
+				if (this.mTargetBuffer.Count > 0)
 				{
-					for (int num3 = mTargetBuffer.Count - 1; num3 >= 0; num3--)
+					for (int i = this.mTargetBuffer.Count - 1; i >= 0; i--)
 					{
-						CuttableInfo cuttableInfo = mTargetBuffer[num3];
+						CuttingController.CuttableInfo cuttableInfo = this.mTargetBuffer[i];
 						float3 @float = math.normalize(math.cross(cuttableInfo.HitPoint.normal, normalized));
-						QueuedCuttable item = new QueuedCuttable(cuttableInfo.Component, cuttableInfo.HitPoint.point, normalized, @float, splitForce, splitGap, impactForce, forward, mData.BuffableCutExecution.PowerRating, data.SplitDelay);
-						mQueuedCuttables.Add(item);
+						CuttingController.QueuedCuttable item = new CuttingController.QueuedCuttable(cuttableInfo.Component, cuttableInfo.HitPoint.point, normalized, @float, splitForce, splitGap, impactForce, forward, this.mData.BuffableCutExecution.PowerRating, data.SplitDelay);
+						this.mQueuedCuttables.Add(item);
 						num = Mathf.Max(Vector3.SqrMagnitude(cuttableInfo.HitPoint.point - LynxCameraController.MainCameraTransform.position), num);
-						mTargetBuffer.RemoveAt(num3);
+						this.mTargetBuffer.RemoveAt(i);
 						if (cuttableInfo.Component.CuttingTargetable.PowerRating > num2)
 						{
 							num2 = cuttableInfo.Component.CuttingTargetable.PowerRating;
 						}
 					}
 				}
-				mCuttingToolController.UpdateCutGradeRTPC(num2);
-				LastMinCutLength = Mathf.Sqrt(num);
-				mCutReloadInfo.Cut();
-				mCuttingToolController.DurabilityHandler.HandleDurabilityDamageOfType(DurabilityDamageDef.DurabilityDamageType.CutterExecutedCut);
-				mCuttingToolController.TriggerCutterAnimation(mData.BuffableCutExecution.FireAnimationTrigger);
+				this.mCuttingToolController.UpdateCutGradeRTPC(num2);
+				this.LastMinCutLength = Mathf.Sqrt(num);
+				this.mCutReloadInfo.Cut();
+				this.mCuttingToolController.DurabilityHandler.HandleDurabilityDamageOfType(DurabilityDamageDef.DurabilityDamageType.CutterExecutedCut, null);
+				this.mCuttingToolController.TriggerCutterAnimation(this.mData.BuffableCutExecution.FireAnimationTrigger);
 				Main.EventSystem.Post(CuttingChangedEvent.GetEvent(CuttingChangedEvent.CutState.Cutting, cutData));
-				ApplyRecoilForce(cutData.RecoilForce);
+				this.ApplyRecoilForce(cutData.RecoilForce);
 				return true;
 			}
-			LastMinCutLength = data.Range;
-			mCutReloadInfo.Cut();
-			mCuttingToolController.DurabilityHandler.HandleDurabilityDamageOfType(DurabilityDamageDef.DurabilityDamageType.CutterExecutedCut);
-			mCuttingToolController.TriggerCutterAnimation(mData.BuffableCutExecution.MissAnimationTrigger);
+			this.LastMinCutLength = data.Range;
+			this.mCutReloadInfo.Cut();
+			this.mCuttingToolController.DurabilityHandler.HandleDurabilityDamageOfType(DurabilityDamageDef.DurabilityDamageType.CutterExecutedCut, null);
+			this.mCuttingToolController.TriggerCutterAnimation(this.mData.BuffableCutExecution.MissAnimationTrigger);
 			Main.EventSystem.Post(CuttingChangedEvent.GetEvent(CuttingChangedEvent.CutState.Missed, cutData));
-			mCuttingToolController.UpdateCutGradeRTPC(0);
+			this.mCuttingToolController.UpdateCutGradeRTPC(0);
 			return false;
 		}
 
+		// Token: 0x0600391D RID: 14621 RVA: 0x000F9238 File Offset: 0x000F7438
 		private void CutStructurePart(StructurePart cuttable, Vector3 cutPoint, Vector3 planeNormal, Vector3 planeTangent, ForceInfo splitForce, float splitGap, ForceInfo impactForce, Vector3 impactDirection, int powerRating)
 		{
-			if (!(cuttable == null) && cuttable.CuttingTargetable != null)
+			if (cuttable == null || cuttable.CuttingTargetable == null)
 			{
-				if (cuttable.StructurePartAsset.Data.ObjectCutBySplitsawAction != null && World.DefaultGameObjectInjectionWorld.EntityManager.HasComponent<FirstGeneration>(cuttable.Entity))
-				{
-					Main.EventSystem.Post(PlayerActionTrackerEvent.GetEvent(cuttable.StructurePartAsset.Data.ObjectCutBySplitsawAction));
-				}
-				Main.EventSystem.Post(ObjectCutEvent.GetEvent(cuttable));
-				Main.EventSystem.Post(ForceReleaseEvent.GetEvent(ForceReleaseEvent.ReleaseState.HandsAndGrapple, cuttable.gameObject));
-				mCutSplitPlaneBuffer.SetNormalAndPosition(planeNormal, cutPoint);
-				mSplitPlanesArrayBuffer[0] = mCutSplitPlaneBuffer;
-				mSplitTangentArrayBuffer[0] = planeTangent;
-				VaporizationInfo vaporizationInfo = ((mData.VaporizationAsset != null) ? mData.VaporizationAsset.Data : VaporizationInfo.None);
-				cuttable.CuttingTargetable.Split(mSplitPlanesArrayBuffer, splitForce, splitGap, cutPoint, planeNormal, planeTangent, impactForce, impactDirection, powerRating, vaporizationInfo, mSplitTangentArrayBuffer);
+				return;
 			}
+			if (cuttable.StructurePartAsset.Data.ObjectCutBySplitsawAction != null && World.DefaultGameObjectInjectionWorld.EntityManager.HasComponent<FirstGeneration>(cuttable.Entity))
+			{
+				Main.EventSystem.Post(PlayerActionTrackerEvent.GetEvent(cuttable.StructurePartAsset.Data.ObjectCutBySplitsawAction, MathUtility.OperationType.Add, 1));
+			}
+			Main.EventSystem.Post(ObjectCutEvent.GetEvent(cuttable));
+			Main.EventSystem.Post(ForceReleaseEvent.GetEvent(ForceReleaseEvent.ReleaseState.HandsAndGrapple, cuttable.gameObject));
+			this.mCutSplitPlaneBuffer.SetNormalAndPosition(planeNormal, cutPoint);
+			this.mSplitPlanesArrayBuffer[0] = this.mCutSplitPlaneBuffer;
+			this.mSplitTangentArrayBuffer[0] = planeTangent;
+			VaporizationInfo vaporizationInfo = ((this.mData.VaporizationAsset != null) ? this.mData.VaporizationAsset.Data : VaporizationInfo.None);
+			cuttable.CuttingTargetable.Split(this.mSplitPlanesArrayBuffer, splitForce, splitGap, cutPoint, planeNormal, planeTangent, impactForce, impactDirection, powerRating, vaporizationInfo, this.mSplitTangentArrayBuffer);
 		}
 
-		private bool TryGetTargetables(ref List<CuttableInfo> targetablesOnLine)
+		// Token: 0x0600391E RID: 14622 RVA: 0x000F9350 File Offset: 0x000F7550
+		private bool TryGetTargetables(ref List<CuttingController.CuttableInfo> targetablesOnLine)
 		{
 			targetablesOnLine.Clear();
 			bool flag = false;
-			for (int i = 0; i < mData.BuffableCutExecution.BuffableCutLines.Count; i++)
+			for (int i = 0; i < this.mData.BuffableCutExecution.BuffableCutLines.Count; i++)
 			{
-				flag |= TryGetCutLineTargetables(mData.BuffableCutExecution, mData.BuffableCutExecution.BuffableCutLines[i], ref targetablesOnLine, out var _, out var _);
+				Vector2 vector;
+				bool flag2;
+				flag |= this.TryGetCutLineTargetables(this.mData.BuffableCutExecution, this.mData.BuffableCutExecution.BuffableCutLines[i], ref targetablesOnLine, out vector, out flag2);
 			}
 			return flag;
 		}
 
-		private bool TryGetCutLineTargetables(ICutExecutionData data, ICutLineData cutData, ref List<CuttableInfo> targetablesOnLine, out Vector2 cutRotation, out bool anyBelowPowerRating)
+		// Token: 0x0600391F RID: 14623 RVA: 0x000F93B8 File Offset: 0x000F75B8
+		private bool TryGetCutLineTargetables(ICutExecutionData data, ICutLineData cutData, ref List<CuttingController.CuttableInfo> targetablesOnLine, out Vector2 cutRotation, out bool anyBelowPowerRating)
 		{
 			anyBelowPowerRating = false;
 			if (LynxCameraController.MainCamera == null)
@@ -563,12 +525,13 @@ namespace BBI.Unity.Game
 				cutRotation = Vector2.zero;
 				return false;
 			}
-			GetRotatedCutLine(cutData, mCutRotation, out var newPosition, out cutRotation);
-			Vector2 vector = LynxCameraController.ScreenCenter + newPosition * LynxCameraController.ScreenWidth;
-			mAnythingInRange = false;
+			Vector2 vector;
+			CuttingController.GetRotatedCutLine(cutData, this.mCutRotation, out vector, out cutRotation);
+			Vector2 vector2 = LynxCameraController.ScreenCenter + vector * (float)LynxCameraController.ScreenWidth;
+			this.mAnythingInRange = false;
 			if (cutData.CutAllObjectsOnLine)
 			{
-				int num = (int)(cutData.CutLineWidth * mData.RaycastScreenWidthDensity * 100f);
+				int num = (int)(cutData.CutLineWidth * this.mData.RaycastScreenWidthDensity * 100f);
 				float num2 = cutData.CutLineWidth * cutRotation.x;
 				float num3 = cutData.CutLineWidth * cutRotation.y;
 				int num4 = num / 2;
@@ -576,137 +539,148 @@ namespace BBI.Unity.Game
 				{
 					int rayIndexCenterOffset = Mathf.Abs(num4 - i);
 					float num5 = (float)i / (float)(num - 1);
-					float x = vector.x + (float)LynxCameraController.ScreenWidth * ((0f - num2) * 0.5f + num2 * num5);
-					float y = vector.y + (float)LynxCameraController.ScreenWidth * ((0f - num3) * 0.5f + num3 * num5);
-					Ray ray = LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(x, y));
-					AddHitValidTargetable(ray, rayIndexCenterOffset, data, ref targetablesOnLine, out var anyBelowPowerRating2);
-					anyBelowPowerRating |= anyBelowPowerRating2;
+					float num6 = vector2.x + (float)LynxCameraController.ScreenWidth * (-num2 * 0.5f + num2 * num5);
+					float num7 = vector2.y + (float)LynxCameraController.ScreenWidth * (-num3 * 0.5f + num3 * num5);
+					Ray ray = LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(num6, num7));
+					bool flag;
+					this.AddHitValidTargetable(ray, rayIndexCenterOffset, data, ref targetablesOnLine, out flag);
+					anyBelowPowerRating = anyBelowPowerRating || flag;
 				}
 			}
 			else
 			{
-				Ray ray2 = LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(vector.x, vector.y));
-				AddHitValidTargetable(ray2, 0, data, ref targetablesOnLine, out var anyBelowPowerRating3);
-				anyBelowPowerRating |= anyBelowPowerRating3;
+				Ray ray2 = LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(vector2.x, vector2.y));
+				bool flag2;
+				this.AddHitValidTargetable(ray2, 0, data, ref targetablesOnLine, out flag2);
+				anyBelowPowerRating = anyBelowPowerRating || flag2;
 			}
-			bool flag = targetablesOnLine.Count > 0;
-			if (flag)
+			bool flag3 = targetablesOnLine.Count > 0;
+			if (flag3)
 			{
-				int num6 = mEdgeDetectionPoints.Points.Length;
-				float x2 = cutRotation.x;
-				float y2 = cutRotation.y;
-				_ = num6 / 2;
-				mEdgeDetectionPoints.FirstHitIndex = -1;
-				mEdgeDetectionPoints.LastHitIndex = -1;
-				for (int j = 0; j < num6; j++)
+				int num8 = this.mEdgeDetectionPoints.Points.Length;
+				float x = cutRotation.x;
+				float y = cutRotation.y;
+				int num9 = num8 / 2;
+				this.mEdgeDetectionPoints.FirstHitIndex = -1;
+				this.mEdgeDetectionPoints.LastHitIndex = -1;
+				for (int j = 0; j < num8; j++)
 				{
-					float num7 = (float)j / (float)(num6 - 1);
-					float x3 = vector.x + (float)LynxCameraController.ScreenWidth * ((0f - x2) * 0.5f + x2 * num7);
-					float y3 = vector.y + (float)LynxCameraController.ScreenWidth * ((0f - y2) * 0.5f + y2 * num7);
-					Vector3 vector2 = new Vector3(x3, y3);
-					Ray ray3 = LynxCameraController.MainCamera.ScreenPointToRay(vector2);
-					mEdgeDetectionPoints.Points[j].ScreenPosition = vector2;
-					if (Physics.Raycast(ray3, out var hitInfo, data.Range * 3f, mData.RaycastLayerMask))
+					float num10 = (float)j / (float)(num8 - 1);
+					float num11 = vector2.x + (float)LynxCameraController.ScreenWidth * (-x * 0.5f + x * num10);
+					float num12 = vector2.y + (float)LynxCameraController.ScreenWidth * (-y * 0.5f + y * num10);
+					Vector3 vector3;
+					vector3..ctor(num11, num12);
+					Ray ray3 = LynxCameraController.MainCamera.ScreenPointToRay(vector3);
+					this.mEdgeDetectionPoints.Points[j].ScreenPosition = vector3;
+					RaycastHit raycastHit;
+					if (Physics.Raycast(ray3, ref raycastHit, data.Range * 3f, this.mData.RaycastLayerMask))
 					{
-						bool flag2 = false;
+						bool flag4 = false;
 						for (int k = 0; k < targetablesOnLine.Count; k++)
 						{
-							StructurePart componentInParent = hitInfo.collider.transform.GetComponentInParent<StructurePart>();
+							StructurePart componentInParent = raycastHit.collider.transform.GetComponentInParent<StructurePart>();
 							if (componentInParent != null && componentInParent == targetablesOnLine[k].Component)
 							{
-								flag2 = true;
-								mEdgeDetectionPoints.Points[j].State = ((mCuttingToolController.State != CuttingState.Disabled) ? EdgeDetectionPoint.PointState.Valid : EdgeDetectionPoint.PointState.Invalid);
-								if (mEdgeDetectionPoints.FirstHitIndex == -1)
+								flag4 = true;
+								this.mEdgeDetectionPoints.Points[j].State = ((this.mCuttingToolController.State == CuttingState.Disabled) ? CuttingController.EdgeDetectionPoint.PointState.Invalid : CuttingController.EdgeDetectionPoint.PointState.Valid);
+								if (this.mEdgeDetectionPoints.FirstHitIndex == -1)
 								{
-									mEdgeDetectionPoints.FirstHitIndex = j;
+									this.mEdgeDetectionPoints.FirstHitIndex = j;
 								}
-								mEdgeDetectionPoints.LastHitIndex = j;
+								this.mEdgeDetectionPoints.LastHitIndex = j;
 								break;
 							}
 						}
-						if (!flag2)
+						if (!flag4)
 						{
-							mEdgeDetectionPoints.Points[j].State = EdgeDetectionPoint.PointState.Invalid;
+							this.mEdgeDetectionPoints.Points[j].State = CuttingController.EdgeDetectionPoint.PointState.Invalid;
 						}
 					}
 					else
 					{
-						mEdgeDetectionPoints.Points[j].State = EdgeDetectionPoint.PointState.None;
+						this.mEdgeDetectionPoints.Points[j].State = CuttingController.EdgeDetectionPoint.PointState.None;
 					}
 				}
 			}
-			return flag;
+			return flag3;
 		}
 
+		// Token: 0x06003920 RID: 14624 RVA: 0x000F9718 File Offset: 0x000F7918
 		public static void GetRotatedCutLine(ICutLineData cutData, Vector2 rotation, out Vector2 newPosition, out Vector2 newRotation)
 		{
-			float x = rotation.x;
-			float y = rotation.y;
-			float x2 = cutData.PositionOffset.x;
-			float y2 = cutData.PositionOffset.y;
-			float x3 = x2 * x - y2 * y;
-			float y3 = x2 * y + y2 * x;
-			newPosition = new Vector2(x3, y3);
+			float num = rotation.x;
+			float num2 = rotation.y;
+			float x = cutData.PositionOffset.x;
+			float y = cutData.PositionOffset.y;
+			float num3 = x * num - y * num2;
+			float num4 = x * num2 + y * num;
+			newPosition = new Vector2(num3, num4);
 			if (cutData.RotationOffset != 0f)
 			{
-				float f = cutData.RotationOffset * ((float)Math.PI / 180f);
-				x = Mathf.Cos(f);
-				y = Mathf.Sin(f);
-				x3 = rotation.x * x - rotation.y * y;
-				y3 = rotation.x * y + rotation.y * x;
-				newRotation = new Vector2(x3, y3);
+				float num5 = cutData.RotationOffset * 0.017453292f;
+				num = Mathf.Cos(num5);
+				num2 = Mathf.Sin(num5);
+				num3 = rotation.x * num - rotation.y * num2;
+				num4 = rotation.x * num2 + rotation.y * num;
+				newRotation = new Vector2(num3, num4);
+				return;
 			}
-			else
-			{
-				newRotation = rotation;
-			}
+			newRotation = rotation;
 		}
 
-		private void AddHitValidTargetable(Ray ray, int rayIndexCenterOffset, ICutExecutionData data, ref List<CuttableInfo> targetablesOnLine, out bool anyBelowPowerRating)
+		// Token: 0x06003921 RID: 14625 RVA: 0x000F97CC File Offset: 0x000F79CC
+		private void AddHitValidTargetable(Ray ray, int rayIndexCenterOffset, ICutExecutionData data, ref List<CuttingController.CuttableInfo> targetablesOnLine, out bool anyBelowPowerRating)
 		{
 			anyBelowPowerRating = false;
-			if (!Physics.Raycast(ray, out var hitInfo, data.Range, mData.RaycastLayerMask))
+			RaycastHit raycastHit;
+			if (Physics.Raycast(ray, ref raycastHit, data.Range, this.mData.RaycastLayerMask))
 			{
-				return;
-			}
-			mAnythingInRange = true;
-			if (((1 << hitInfo.collider.gameObject.layer) & mData.ValidSurfaceLayerMask.value) <= 0)
-			{
-				return;
-			}
-			for (int i = 0; i < data.ExcludeTags.Length; i++)
-			{
-				if (hitInfo.collider.CompareTag(data.ExcludeTags[i]))
+				this.mAnythingInRange = true;
+				if (((1 << raycastHit.collider.gameObject.layer) & this.mData.ValidSurfaceLayerMask.value) <= 0)
 				{
 					return;
 				}
-			}
-			if (!TryGetValidTargetable(hitInfo, mData.BuffableCutExecution.PowerRating, out var part, out anyBelowPowerRating))
-			{
-				return;
-			}
-			bool flag = true;
-			for (int j = 0; j < targetablesOnLine.Count; j++)
-			{
-				CuttableInfo value = targetablesOnLine[j];
-				if (value.Component == part)
+				for (int i = 0; i < data.ExcludeTags.Length; i++)
 				{
-					flag = false;
-					if (rayIndexCenterOffset < value.RayIndexCenterOffset)
+					if (raycastHit.collider.CompareTag(data.ExcludeTags[i]))
 					{
-						value.RayIndexCenterOffset = rayIndexCenterOffset;
-						value.HitPoint = hitInfo;
-						targetablesOnLine[j] = value;
+						return;
 					}
-					break;
 				}
-			}
-			if (flag)
-			{
-				targetablesOnLine.Add(new CuttableInfo(part, hitInfo, rayIndexCenterOffset));
+				StructurePart structurePart;
+				if (CuttingController.TryGetValidTargetable(raycastHit, this.mData.BuffableCutExecution.PowerRating, out structurePart, out anyBelowPowerRating, false))
+				{
+					bool flag = true;
+					int j = 0;
+					while (j < targetablesOnLine.Count)
+					{
+						CuttingController.CuttableInfo cuttableInfo = targetablesOnLine[j];
+						if (cuttableInfo.Component == structurePart)
+						{
+							flag = false;
+							if (rayIndexCenterOffset < cuttableInfo.RayIndexCenterOffset)
+							{
+								cuttableInfo.RayIndexCenterOffset = rayIndexCenterOffset;
+								cuttableInfo.HitPoint = raycastHit;
+								targetablesOnLine[j] = cuttableInfo;
+								break;
+							}
+							break;
+						}
+						else
+						{
+							j++;
+						}
+					}
+					if (flag)
+					{
+						targetablesOnLine.Add(new CuttingController.CuttableInfo(structurePart, raycastHit, rayIndexCenterOffset));
+					}
+				}
 			}
 		}
 
+		// Token: 0x06003922 RID: 14626 RVA: 0x000F98F0 File Offset: 0x000F7AF0
 		public static bool TryGetValidTargetable(RaycastHit hit, int powerRating, out StructurePart part, out bool anyBelowPowerRating, bool uiInfo = false)
 		{
 			part = hit.collider.transform.GetComponentInParent<StructurePart>();
@@ -716,7 +690,7 @@ namespace BBI.Unity.Game
 				bool flag = part.CuttingTargetable.IsAimCuttable();
 				bool flag2 = part.CuttingTargetable.IsQuickCuttable();
 				bool flag3 = part.CuttingTargetable.IsBelowPowerRating(powerRating);
-				anyBelowPowerRating |= flag3;
+				anyBelowPowerRating = anyBelowPowerRating || flag3;
 				if (uiInfo || ((flag || flag2) && !flag3))
 				{
 					return true;
@@ -725,10 +699,12 @@ namespace BBI.Unity.Game
 			return false;
 		}
 
+		// Token: 0x06003923 RID: 14627 RVA: 0x000F9964 File Offset: 0x000F7B64
 		public bool TryGetTargetableInRange(out StructurePart targetable, out bool anyBelowPowerRating, bool uiInfo = false)
 		{
 			anyBelowPowerRating = false;
-			if (LynxCameraController.MainCameraTransform != null && Physics.Raycast(LynxCameraController.MainCameraTransform.position, LynxCameraController.MainCameraTransform.forward, out var hitInfo, ActiveCutData.Range, mData.RaycastLayerMask) && TryGetValidTargetable(hitInfo, mData.BuffableCutExecution.PowerRating, out targetable, out anyBelowPowerRating, uiInfo))
+			RaycastHit hit;
+			if (LynxCameraController.MainCameraTransform != null && Physics.Raycast(LynxCameraController.MainCameraTransform.position, LynxCameraController.MainCameraTransform.forward, ref hit, this.ActiveCutData.Range, this.mData.RaycastLayerMask) && CuttingController.TryGetValidTargetable(hit, this.mData.BuffableCutExecution.PowerRating, out targetable, out anyBelowPowerRating, uiInfo))
 			{
 				return true;
 			}
@@ -736,60 +712,358 @@ namespace BBI.Unity.Game
 			return false;
 		}
 
+		// Token: 0x06003924 RID: 14628 RVA: 0x000F99DC File Offset: 0x000F7BDC
 		public override void DrawDebugGizmos()
 		{
-			if (!Application.isPlaying || LynxCameraController.MainCamera == null)
+			if (!Application.isPlaying)
 			{
 				return;
 			}
-			for (int i = 0; i < mData.BuffableCutExecution.BuffableCutLines.Count; i++)
+			if (LynxCameraController.MainCamera == null)
 			{
-				CutLineBuffableData cutLineBuffableData = mData.BuffableCutExecution.BuffableCutLines[i];
-				GetRotatedCutLine(cutLineBuffableData, mCutRotation, out var newPosition, out var newRotation);
-				Vector2 vector = LynxCameraController.ScreenCenter + newPosition * LynxCameraController.ScreenWidth;
-				Gizmos.DrawRay(LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(vector.x, vector.y)));
+				return;
+			}
+			for (int i = 0; i < this.mData.BuffableCutExecution.BuffableCutLines.Count; i++)
+			{
+				CutLineBuffableData cutLineBuffableData = this.mData.BuffableCutExecution.BuffableCutLines[i];
+				Vector2 vector;
+				Vector2 vector2;
+				CuttingController.GetRotatedCutLine(cutLineBuffableData, this.mCutRotation, out vector, out vector2);
+				Vector2 vector3 = LynxCameraController.ScreenCenter + vector * (float)LynxCameraController.ScreenWidth;
+				Gizmos.DrawRay(LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(vector3.x, vector3.y)));
 				if (cutLineBuffableData.CutAllObjectsOnLine)
 				{
-					int num = (int)(cutLineBuffableData.CutLineWidth * mData.RaycastScreenWidthDensity * 100f);
-					float num2 = cutLineBuffableData.CutLineWidth * newRotation.x;
-					float num3 = cutLineBuffableData.CutLineWidth * newRotation.y;
+					int num = (int)(cutLineBuffableData.CutLineWidth * this.mData.RaycastScreenWidthDensity * 100f);
+					float num2 = cutLineBuffableData.CutLineWidth * vector2.x;
+					float num3 = cutLineBuffableData.CutLineWidth * vector2.y;
 					for (int j = 0; j < num; j++)
 					{
 						float num4 = (float)j / (float)(num - 1);
-						float x = vector.x + (float)LynxCameraController.ScreenWidth * ((0f - num2) * 0.5f + num2 * num4);
-						float y = vector.y + (float)LynxCameraController.ScreenWidth * ((0f - num3) * 0.5f + num3 * num4);
-						Gizmos.DrawRay(LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(x, y)));
+						float num5 = vector3.x + (float)LynxCameraController.ScreenWidth * (-num2 * 0.5f + num2 * num4);
+						float num6 = vector3.y + (float)LynxCameraController.ScreenWidth * (-num3 * 0.5f + num3 * num4);
+						Gizmos.DrawRay(LynxCameraController.MainCamera.ScreenPointToRay(new Vector3(num5, num6)));
 					}
 				}
 			}
 		}
 
+		// Token: 0x06003925 RID: 14629 RVA: 0x000F9B40 File Offset: 0x000F7D40
 		public override void DrawDebugInfo()
 		{
-			if (!Application.isPlaying || LynxCameraController.MainCamera == null)
+			if (!Application.isPlaying)
 			{
 				return;
 			}
-			for (int i = 0; i < mData.BuffableCutExecution.BuffableCutLines.Count; i++)
+			if (LynxCameraController.MainCamera == null)
 			{
-				CutLineBuffableData cutLineBuffableData = mData.BuffableCutExecution.BuffableCutLines[i];
-				GetRotatedCutLine(cutLineBuffableData, mCutRotation, out var newPosition, out var newRotation);
-				Vector2 vector = LynxCameraController.ScreenCenter + newPosition * LynxCameraController.ScreenWidth;
-				GUI.Box(new Rect(vector.x - 1f, vector.y - 1f, 1f, 1f), Texture2D.whiteTexture);
+				return;
+			}
+			for (int i = 0; i < this.mData.BuffableCutExecution.BuffableCutLines.Count; i++)
+			{
+				CutLineBuffableData cutLineBuffableData = this.mData.BuffableCutExecution.BuffableCutLines[i];
+				Vector2 vector;
+				Vector2 vector2;
+				CuttingController.GetRotatedCutLine(cutLineBuffableData, this.mCutRotation, out vector, out vector2);
+				Vector2 vector3 = LynxCameraController.ScreenCenter + vector * (float)LynxCameraController.ScreenWidth;
+				GUI.Box(new Rect(vector3.x - 1f, vector3.y - 1f, 1f, 1f), Texture2D.whiteTexture);
 				if (cutLineBuffableData.CutAllObjectsOnLine)
 				{
-					int num = (int)(cutLineBuffableData.CutLineWidth * mData.RaycastScreenWidthDensity * 100f);
-					float num2 = cutLineBuffableData.CutLineWidth * newRotation.x;
-					float num3 = cutLineBuffableData.CutLineWidth * newRotation.y;
+					int num = (int)(cutLineBuffableData.CutLineWidth * this.mData.RaycastScreenWidthDensity * 100f);
+					float num2 = cutLineBuffableData.CutLineWidth * vector2.x;
+					float num3 = cutLineBuffableData.CutLineWidth * vector2.y;
 					for (int j = 0; j < num; j++)
 					{
 						float num4 = (float)j / (float)(num - 1);
-						float num5 = vector.x + (float)LynxCameraController.ScreenWidth * ((0f - num2) * 0.5f + num2 * num4);
-						float num6 = vector.y - (float)LynxCameraController.ScreenWidth * ((0f - num3) * 0.5f + num3 * num4);
+						float num5 = vector3.x + (float)LynxCameraController.ScreenWidth * (-num2 * 0.5f + num2 * num4);
+						float num6 = vector3.y - (float)LynxCameraController.ScreenWidth * (-num3 * 0.5f + num3 * num4);
 						GUI.Box(new Rect(num5 - 1f, num6 - 1f, 1f, 1f), Texture2D.whiteTexture);
 					}
 				}
 			}
+		}
+
+		// Token: 0x04002D20 RID: 11552
+		private const float kEdgeDetectionRangeMod = 3f;
+
+		// Token: 0x04002D21 RID: 11553
+		private bool mAnyBelowPowerRating;
+
+		// Token: 0x04002D22 RID: 11554
+		private bool mAnythingInRange;
+
+		// Token: 0x04002D25 RID: 11557
+		[Header("Cutter Asset")]
+		[SerializeField]
+		private CutterAsset m_CutterAsset;
+
+		// Token: 0x04002D26 RID: 11558
+		[Header("Player Hookups")]
+		[SerializeField]
+		private Rigidbody m_PlayerRigidbody;
+
+		// Token: 0x04002D27 RID: 11559
+		private ICutterData mData;
+
+		// Token: 0x04002D28 RID: 11560
+		private Vector2 mCutRotation = Vector2.right;
+
+		// Token: 0x04002D29 RID: 11561
+		private List<CuttingController.CuttableInfo> mTargetBuffer = new List<CuttingController.CuttableInfo>();
+
+		// Token: 0x04002D2A RID: 11562
+		private List<CuttingController.QueuedCuttable> mQueuedCuttables = new List<CuttingController.QueuedCuttable>();
+
+		// Token: 0x04002D2B RID: 11563
+		private CuttingController.EdgeDetectionPointList mEdgeDetectionPoints;
+
+		// Token: 0x04002D2C RID: 11564
+		private CuttingController.CutReloadInfo mCutReloadInfo;
+
+		// Token: 0x04002D2D RID: 11565
+		private bool mHorizontalCutNext = true;
+
+		// Token: 0x04002D2E RID: 11566
+		private Plane mCutSplitPlaneBuffer;
+
+		// Token: 0x04002D2F RID: 11567
+		private Plane[] mSplitPlanesArrayBuffer = new Plane[1];
+
+		// Token: 0x04002D30 RID: 11568
+		private Vector3[] mSplitTangentArrayBuffer = new Vector3[1];
+
+		// Token: 0x04002D31 RID: 11569
+		private float mCurrentCutTime;
+
+		// Token: 0x04002D32 RID: 11570
+		private float mMaxCutDelay;
+
+		// Token: 0x04002D33 RID: 11571
+		private bool mAnySuccessfulCuts;
+
+		// Token: 0x04002D34 RID: 11572
+		private CuttingToolController mCuttingToolController;
+
+		// Token: 0x02000ECB RID: 3787
+		public struct CuttableInfo
+		{
+			// Token: 0x06004A14 RID: 18964 RVA: 0x0014655A File Offset: 0x0014475A
+			public CuttableInfo(StructurePart component, RaycastHit hitPoint, int rayIndexCenterOffset)
+			{
+				this.Component = component;
+				this.HitPoint = hitPoint;
+				this.RayIndexCenterOffset = rayIndexCenterOffset;
+			}
+
+			// Token: 0x040046A1 RID: 18081
+			public StructurePart Component;
+
+			// Token: 0x040046A2 RID: 18082
+			public RaycastHit HitPoint;
+
+			// Token: 0x040046A3 RID: 18083
+			public int RayIndexCenterOffset;
+		}
+
+		// Token: 0x02000ECC RID: 3788
+		private struct QueuedCuttable
+		{
+			// Token: 0x06004A15 RID: 18965 RVA: 0x00146574 File Offset: 0x00144774
+			public QueuedCuttable(StructurePart component, Vector3 worldHitPoint, Vector3 worldNormal, Vector3 worldTangent, ForceInfo splitForce, float splitGap, ForceInfo impactForce, Vector3 impactDirection, int powerRating, float queueDelay)
+			{
+				this.Component = component;
+				this.mLocalHitPoint = this.Component.transform.InverseTransformPoint(worldHitPoint);
+				this.mLocalPlaneNormal = this.Component.transform.InverseTransformDirection(worldNormal);
+				this.mLocalPlaneTangent = this.Component.transform.InverseTransformDirection(worldTangent);
+				this.SplitForce = splitForce;
+				this.SplitGap = splitGap;
+				this.ImpactForce = impactForce;
+				this.PowerRating = powerRating;
+				this.mLocalImpactDirection = this.Component.transform.InverseTransformDirection(impactDirection);
+				this.mQueueDelay = queueDelay;
+				this.mStartTime = Time.time;
+			}
+
+			// Token: 0x17001494 RID: 5268
+			// (get) Token: 0x06004A16 RID: 18966 RVA: 0x00146619 File Offset: 0x00144819
+			public Vector3 WorldHitPoint
+			{
+				get
+				{
+					return this.Component.transform.TransformPoint(this.mLocalHitPoint);
+				}
+			}
+
+			// Token: 0x17001495 RID: 5269
+			// (get) Token: 0x06004A17 RID: 18967 RVA: 0x00146631 File Offset: 0x00144831
+			public Vector3 WorldPlaneNormal
+			{
+				get
+				{
+					return this.Component.transform.TransformDirection(this.mLocalPlaneNormal);
+				}
+			}
+
+			// Token: 0x17001496 RID: 5270
+			// (get) Token: 0x06004A18 RID: 18968 RVA: 0x00146649 File Offset: 0x00144849
+			public Vector3 WorldPlaneTangent
+			{
+				get
+				{
+					return this.Component.transform.TransformDirection(this.mLocalPlaneTangent);
+				}
+			}
+
+			// Token: 0x17001497 RID: 5271
+			// (get) Token: 0x06004A19 RID: 18969 RVA: 0x00146661 File Offset: 0x00144861
+			public Vector3 ImpactDirection
+			{
+				get
+				{
+					return this.Component.transform.TransformDirection(this.mLocalImpactDirection);
+				}
+			}
+
+			// Token: 0x17001498 RID: 5272
+			// (get) Token: 0x06004A1A RID: 18970 RVA: 0x00146679 File Offset: 0x00144879
+			public bool DelayReached
+			{
+				get
+				{
+					return Time.time - this.mStartTime >= this.mQueueDelay;
+				}
+			}
+
+			// Token: 0x040046A4 RID: 18084
+			public StructurePart Component;
+
+			// Token: 0x040046A5 RID: 18085
+			public ForceInfo SplitForce;
+
+			// Token: 0x040046A6 RID: 18086
+			public float SplitGap;
+
+			// Token: 0x040046A7 RID: 18087
+			public ForceInfo ImpactForce;
+
+			// Token: 0x040046A8 RID: 18088
+			public int PowerRating;
+
+			// Token: 0x040046A9 RID: 18089
+			private float mStartTime;
+
+			// Token: 0x040046AA RID: 18090
+			private float mQueueDelay;
+
+			// Token: 0x040046AB RID: 18091
+			private Vector3 mLocalHitPoint;
+
+			// Token: 0x040046AC RID: 18092
+			private Vector3 mLocalPlaneNormal;
+
+			// Token: 0x040046AD RID: 18093
+			private Vector3 mLocalPlaneTangent;
+
+			// Token: 0x040046AE RID: 18094
+			private Vector3 mLocalImpactDirection;
+		}
+
+		// Token: 0x02000ECD RID: 3789
+		public struct CutReloadInfo
+		{
+			// Token: 0x06004A1B RID: 18971 RVA: 0x00146692 File Offset: 0x00144892
+			public void Cut()
+			{
+				this.CutSpeedTimer = 0f;
+				this.IsCutting = true;
+				this.CoolingDown = true;
+				this.CoolDownTimer = 0f;
+			}
+
+			// Token: 0x040046AF RID: 18095
+			public float CoolDownTimer;
+
+			// Token: 0x040046B0 RID: 18096
+			public bool CoolingDown;
+
+			// Token: 0x040046B1 RID: 18097
+			public float CutSpeedTimer;
+
+			// Token: 0x040046B2 RID: 18098
+			public bool IsCutting;
+		}
+
+		// Token: 0x02000ECE RID: 3790
+		public struct EdgeDetectionPoint
+		{
+			// Token: 0x040046B3 RID: 18099
+			public Vector3 ScreenPosition;
+
+			// Token: 0x040046B4 RID: 18100
+			public CuttingController.EdgeDetectionPoint.PointState State;
+
+			// Token: 0x02000F60 RID: 3936
+			public enum PointState
+			{
+				// Token: 0x04004A24 RID: 18980
+				None,
+				// Token: 0x04004A25 RID: 18981
+				Valid,
+				// Token: 0x04004A26 RID: 18982
+				Invalid
+			}
+		}
+
+		// Token: 0x02000ECF RID: 3791
+		public struct EdgeDetectionPointList
+		{
+			// Token: 0x17001499 RID: 5273
+			// (get) Token: 0x06004A1C RID: 18972 RVA: 0x001466B8 File Offset: 0x001448B8
+			public Vector3 FirstHitScreenPoint
+			{
+				get
+				{
+					return this.Points[this.FirstHitIndex].ScreenPosition;
+				}
+			}
+
+			// Token: 0x1700149A RID: 5274
+			// (get) Token: 0x06004A1D RID: 18973 RVA: 0x001466D0 File Offset: 0x001448D0
+			public Vector3 LastHitScreenPoint
+			{
+				get
+				{
+					return this.Points[this.LastHitIndex].ScreenPosition;
+				}
+			}
+
+			// Token: 0x1700149B RID: 5275
+			// (get) Token: 0x06004A1E RID: 18974 RVA: 0x001466E8 File Offset: 0x001448E8
+			public bool FirstIndexInRange
+			{
+				get
+				{
+					return this.FirstHitIndex >= 0 && this.FirstHitIndex < this.Points.Length;
+				}
+			}
+
+			// Token: 0x1700149C RID: 5276
+			// (get) Token: 0x06004A1F RID: 18975 RVA: 0x00146705 File Offset: 0x00144905
+			public bool LastIndexInRange
+			{
+				get
+				{
+					return this.LastHitIndex >= 0 && this.LastHitIndex < this.Points.Length;
+				}
+			}
+
+			// Token: 0x040046B5 RID: 18101
+			public CuttingController.EdgeDetectionPoint[] Points;
+
+			// Token: 0x040046B6 RID: 18102
+			public int FirstHitIndex;
+
+			// Token: 0x040046B7 RID: 18103
+			public int LastHitIndex;
 		}
 	}
 }

@@ -6,170 +6,175 @@ using UnityEngine;
 
 namespace BBI.Unity.Game
 {
+	// Token: 0x02000618 RID: 1560
 	public class ScalpelController : DebuggableMonoBehaviour
 	{
-		[SerializeField]
-		private ScalpelAsset m_ScalpelAsset;
+		// Token: 0x170008C4 RID: 2244
+		// (get) Token: 0x06001F0D RID: 7949 RVA: 0x00084B10 File Offset: 0x00082D10
+		public IScalpelData Data
+		{
+			get
+			{
+				return this.mData;
+			}
+		}
 
-		private IScalpelData mData;
-
-		private bool mCanBeUnequipped = true;
-
-		private float mCameraShakeStartTime;
-
-		private CuttingToolController mCuttingToolController;
-
-		private const int kTargetTypeNothing = 0;
-
-		private const int kTargetTypeValid = 1;
-
-		private const int kTargetTypeInvalid = 2;
-
-		public IScalpelData Data => mData;
-
+		// Token: 0x170008C5 RID: 2245
+		// (get) Token: 0x06001F0E RID: 7950 RVA: 0x00084B18 File Offset: 0x00082D18
 		public ScalpelTarget Target { get; } = new ScalpelTarget();
 
+		// Token: 0x170008C6 RID: 2246
+		// (get) Token: 0x06001F0F RID: 7951 RVA: 0x00084B20 File Offset: 0x00082D20
+		public bool CanBeUnequipped
+		{
+			get
+			{
+				return this.mCanBeUnequipped;
+			}
+		}
 
-		public bool CanBeUnequipped => mCanBeUnequipped;
-
+		// Token: 0x170008C7 RID: 2247
+		// (get) Token: 0x06001F10 RID: 7952 RVA: 0x00084B28 File Offset: 0x00082D28
 		public bool IsCurrentEquipment
 		{
 			get
 			{
-				if (mCuttingToolController.EquipementController.CurrentEquipment == EquipmentController.Equipment.CuttingTool)
-				{
-					return mCuttingToolController.CurrentMode == CuttingToolController.CutterMode.Scalpel;
-				}
-				return false;
+				return this.mCuttingToolController.EquipementController.CurrentEquipment == EquipmentController.Equipment.CuttingTool && this.mCuttingToolController.CurrentMode == CuttingToolController.CutterMode.Scalpel;
 			}
 		}
 
+		// Token: 0x06001F11 RID: 7953 RVA: 0x00084B50 File Offset: 0x00082D50
 		private void Awake()
 		{
-			mCuttingToolController = GetComponentInParent<CuttingToolController>();
-			if (mCuttingToolController == null)
+			this.mCuttingToolController = base.GetComponentInParent<CuttingToolController>();
+			if (this.mCuttingToolController == null)
 			{
 				Debug.LogError("[CuttingTool] Unable to find CuttingToolController. Disabling.");
 				base.enabled = false;
+				return;
 			}
-			else if (m_ScalpelAsset == null)
+			if (this.m_ScalpelAsset == null)
 			{
 				Debug.LogError("[CuttingTool] Scalpel Asset is missing.");
 				base.enabled = false;
+				return;
 			}
-			else
-			{
-				mData = new ScalpelBuffableData(m_ScalpelAsset.Data);
-			}
+			this.mData = new ScalpelBuffableData(this.m_ScalpelAsset.Data);
 		}
 
+		// Token: 0x06001F12 RID: 7954 RVA: 0x00084BC0 File Offset: 0x00082DC0
 		public void UpdateScalpel()
 		{
-			UpdateTargeting();
-			switch (mCuttingToolController.State)
+			this.UpdateTargeting();
+			switch (this.mCuttingToolController.State)
 			{
 			case CuttingState.Ready:
-				HandleReadyState();
-				break;
+				this.HandleReadyState();
+				return;
 			case CuttingState.Cutting:
-				HandleCuttingState();
-				break;
+				this.HandleCuttingState();
+				return;
 			case CuttingState.Disabled:
-				HandleDisabledState();
-				break;
+				this.HandleDisabledState();
+				return;
 			default:
 				throw new ArgumentOutOfRangeException();
 			}
 		}
 
+		// Token: 0x06001F13 RID: 7955 RVA: 0x00084C10 File Offset: 0x00082E10
 		private void UpdateTargeting()
 		{
-			StructurePart part = Target.Part;
-			StructureGroup structureGroup = ((Target.Part != null) ? Target.Part.Group : null);
+			StructurePart part = this.Target.Part;
+			StructureGroup structureGroup = ((this.Target.Part != null) ? this.Target.Part.Group : null);
 			StructureGroup structureGroup2 = null;
-			int targetTypeRTPCValue = GetTargetTypeRTPCValue(Target);
-			if (Physics.Raycast(LynxCameraController.MainCameraTransform.position, LynxCameraController.MainCameraTransform.forward, out var hitInfo, mData.Range, mData.LayerMask))
+			int targetTypeRTPCValue = this.GetTargetTypeRTPCValue(this.Target);
+			RaycastHit raycastHit;
+			if (Physics.Raycast(LynxCameraController.MainCameraTransform.position, LynxCameraController.MainCameraTransform.forward, ref raycastHit, this.mData.Range, this.mData.LayerMask))
 			{
-				Target.Position = hitInfo.point;
-				Target.Normal = hitInfo.normal;
-				Target.Part = hitInfo.collider.transform.GetComponentInParent<StructurePart>();
-				Target.GameObject = hitInfo.collider.gameObject;
-				Target.IsValid = IsValidTargetable(Target.Part);
-				structureGroup2 = ((Target.Part != null) ? Target.Part.Group : null);
+				this.Target.Position = raycastHit.point;
+				this.Target.Normal = raycastHit.normal;
+				this.Target.Part = raycastHit.collider.transform.GetComponentInParent<StructurePart>();
+				this.Target.GameObject = raycastHit.collider.gameObject;
+				this.Target.IsValid = this.IsValidTargetable(this.Target.Part);
+				structureGroup2 = ((this.Target.Part != null) ? this.Target.Part.Group : null);
 			}
 			else
 			{
-				Target.Reset(mData.Range);
+				this.Target.Reset(this.mData.Range);
 			}
-			if (mCuttingToolController.State == CuttingState.Cutting && part != Target.Part && (structureGroup2 == null || structureGroup != structureGroup2))
+			if (this.mCuttingToolController.State == CuttingState.Cutting && part != this.Target.Part && (structureGroup2 == null || structureGroup != structureGroup2))
 			{
-				int targetTypeRTPCValue2 = GetTargetTypeRTPCValue(Target);
+				int targetTypeRTPCValue2 = this.GetTargetTypeRTPCValue(this.Target);
 				if (targetTypeRTPCValue2 != 2 || targetTypeRTPCValue != 2)
 				{
-					Main.EventSystem.Post(MasterSFXEvent.GetEvent(mData.ScalpelTargetChangedAudioEvent));
+					Main.EventSystem.Post(MasterSFXEvent.GetEvent(this.mData.ScalpelTargetChangedAudioEvent));
 				}
-				UpdateTargetTypeRTPC(targetTypeRTPCValue2);
+				this.UpdateTargetTypeRTPC(targetTypeRTPCValue2);
 			}
 		}
 
+		// Token: 0x06001F14 RID: 7956 RVA: 0x00084DB8 File Offset: 0x00082FB8
 		private void HandleReadyState()
 		{
 			if (LynxControls.Instance.GameplayActions.CutterFire.WasPressed)
 			{
-				mCuttingToolController.SetState(CuttingState.Cutting);
+				this.mCuttingToolController.SetState(CuttingState.Cutting);
 			}
 		}
 
+		// Token: 0x06001F15 RID: 7957 RVA: 0x00084DDC File Offset: 0x00082FDC
 		private void HandleCuttingState()
 		{
 			if (!LynxControls.Instance.GameplayActions.CutterFire.IsPressed)
 			{
-				mCuttingToolController.DelayCooldown();
-				mCuttingToolController.SetState(CuttingState.Ready);
+				this.mCuttingToolController.DelayCooldown();
+				this.mCuttingToolController.SetState(CuttingState.Ready);
 				return;
 			}
-			float amount = Mathf.Lerp(mData.ControllerVibrationIntensity.Min, mData.ControllerVibrationIntensity.Max, mCuttingToolController.CurrentHeatPercent);
+			float amount = Mathf.Lerp(this.mData.ControllerVibrationIntensity.Min, this.mData.ControllerVibrationIntensity.Max, this.mCuttingToolController.CurrentHeatPercent);
 			InputManager.ActiveDevice.Vibrate(LynxControls.Instance.GetVibrationIntensity(amount));
-			if (Time.time - mCameraShakeStartTime >= mData.CuttingCameraShakeSettings.ShakeDuration)
+			if (Time.time - this.mCameraShakeStartTime >= this.mData.CuttingCameraShakeSettings.ShakeDuration)
 			{
-				mCameraShakeStartTime = Time.time;
-				Main.EventSystem.Post(CameraShakeEvent.GetGlobalEvent(mData.CuttingCameraShakeSettings));
+				this.mCameraShakeStartTime = Time.time;
+				Main.EventSystem.Post(CameraShakeEvent.GetGlobalEvent(this.mData.CuttingCameraShakeSettings));
 			}
-			StructurePart part = Target.Part;
+			StructurePart part = this.Target.Part;
 			if (part == null || part.CuttingTargetable == null)
 			{
-				mCuttingToolController.UpdateCutGradeRTPC(0);
+				this.mCuttingToolController.UpdateCutGradeRTPC(0);
 			}
 			else
 			{
-				mCuttingToolController.UpdateCutGradeRTPC(Target.Part.CuttingTargetable.PowerRating);
+				this.mCuttingToolController.UpdateCutGradeRTPC(this.Target.Part.CuttingTargetable.PowerRating);
 			}
-			if (Target.IsValid)
+			if (this.Target.IsValid)
 			{
-				bool isPartOfGroup = Target.Part.IsPartOfGroup;
-				Entity entity = (isPartOfGroup ? Target.Part.Group.EntityBlueprintComponent.Entity : Target.Part.EntityBlueprintComponent.Entity);
-				EntityManager entityManager = (isPartOfGroup ? Target.Part.Group.EntityBlueprintComponent.EntityManager : Target.Part.EntityBlueprintComponent.EntityManager);
+				bool isPartOfGroup = this.Target.Part.IsPartOfGroup;
+				Entity entity = (isPartOfGroup ? this.Target.Part.Group.EntityBlueprintComponent.Entity : this.Target.Part.EntityBlueprintComponent.Entity);
+				EntityManager entityManager = (isPartOfGroup ? this.Target.Part.Group.EntityBlueprintComponent.EntityManager : this.Target.Part.EntityBlueprintComponent.EntityManager);
 				float mass = 0f;
 				if (isPartOfGroup)
 				{
-					mass = Target.Part.Group.GetTotalGroupMass();
+					mass = this.Target.Part.Group.GetTotalGroupMass();
 				}
 				else
 				{
-					Target.Part.TryGetPartMass(out mass);
+					this.Target.Part.TryGetPartMass(out mass);
 				}
-				float meltingTime = Target.Part.CuttingTargetable.GetMeltingTime(mass);
-				if (entityManager.TryGetComponent<VaporizationComponent>(entity, out var component))
+				float meltingTime = this.Target.Part.CuttingTargetable.GetMeltingTime(mass);
+				VaporizationComponent vaporizationComponent;
+				if (entityManager.TryGetComponent(entity, out vaporizationComponent))
 				{
-					component.ModifiedThisFrame = true;
-					component.VaporizationAmount += Time.deltaTime;
-					component.MaxVaporization = meltingTime;
-					component.Type = VaporizationType.Scalpel;
-					entityManager.SetComponentData(entity, component);
+					vaporizationComponent.ModifiedThisFrame = true;
+					vaporizationComponent.VaporizationAmount += Time.deltaTime;
+					vaporizationComponent.MaxVaporization = meltingTime;
+					vaporizationComponent.Type = VaporizationType.Scalpel;
+					entityManager.SetComponentData<VaporizationComponent>(entity, vaporizationComponent);
 				}
 				else
 				{
-					entityManager.AddComponentData(entity, new VaporizationComponent
+					entityManager.AddComponentData<VaporizationComponent>(entity, new VaporizationComponent
 					{
 						ModifiedThisFrame = true,
 						VaporizationAmount = Time.deltaTime,
@@ -178,38 +183,40 @@ namespace BBI.Unity.Game
 					});
 				}
 			}
-			mCuttingToolController.AddHeat();
-			mCuttingToolController.DelayCooldown();
+			this.mCuttingToolController.AddHeat();
+			this.mCuttingToolController.DelayCooldown();
 		}
 
+		// Token: 0x06001F16 RID: 7958 RVA: 0x00085054 File Offset: 0x00083254
 		private void HandleDisabledState()
 		{
-			if (IsCurrentEquipment && LynxControls.Instance.GameplayActions.CutterFire.WasPressed)
+			if (this.IsCurrentEquipment && LynxControls.Instance.GameplayActions.CutterFire.WasPressed)
 			{
-				mCuttingToolController.EquipCutter();
-				Main.EventSystem.Post(MasterSFXEvent.GetEvent(mCuttingToolController.Data.CutDeniedAudioEvent));
+				this.mCuttingToolController.EquipCutter();
+				Main.EventSystem.Post(MasterSFXEvent.GetEvent(this.mCuttingToolController.Data.CutDeniedAudioEvent));
 			}
 		}
 
+		// Token: 0x06001F17 RID: 7959 RVA: 0x000850AC File Offset: 0x000832AC
 		public void OnStateChanged(CuttingState newState)
 		{
 			switch (newState)
 			{
 			case CuttingState.Ready:
-				mCameraShakeStartTime = 0f;
-				mCanBeUnequipped = true;
+				this.mCameraShakeStartTime = 0f;
+				this.mCanBeUnequipped = true;
 				break;
 			case CuttingState.Cutting:
-				mCuttingToolController.EquipCutter();
-				mCameraShakeStartTime = Time.time;
-				Main.EventSystem.Post(CameraShakeEvent.GetGlobalEvent(mData.CuttingCameraShakeSettings));
-				mCuttingToolController.DurabilityHandler.HandleDurabilityDamageOfType(DurabilityDamageDef.DurabilityDamageType.ScalpelIsActive, () => IsCurrentEquipment && mCuttingToolController.State == CuttingState.Cutting);
-				UpdateTargetTypeRTPC(GetTargetTypeRTPCValue(Target));
-				mCanBeUnequipped = false;
+				this.mCuttingToolController.EquipCutter();
+				this.mCameraShakeStartTime = Time.time;
+				Main.EventSystem.Post(CameraShakeEvent.GetGlobalEvent(this.mData.CuttingCameraShakeSettings));
+				this.mCuttingToolController.DurabilityHandler.HandleDurabilityDamageOfType(DurabilityDamageDef.DurabilityDamageType.ScalpelIsActive, () => this.IsCurrentEquipment && this.mCuttingToolController.State == CuttingState.Cutting);
+				this.UpdateTargetTypeRTPC(this.GetTargetTypeRTPCValue(this.Target));
+				this.mCanBeUnequipped = false;
 				break;
 			case CuttingState.Disabled:
-				mCameraShakeStartTime = 0f;
-				mCanBeUnequipped = true;
+				this.mCameraShakeStartTime = 0f;
+				this.mCanBeUnequipped = true;
 				break;
 			default:
 				throw new ArgumentOutOfRangeException();
@@ -218,35 +225,60 @@ namespace BBI.Unity.Game
 			Main.EventSystem.Post(ScalpelStateChangedEvent.GetEvent(newState));
 		}
 
+		// Token: 0x06001F18 RID: 7960 RVA: 0x00085188 File Offset: 0x00083388
 		private bool IsValidTargetable(StructurePart part)
 		{
-			if (part != null && part.CuttingTargetable != null && part.CuttingTargetable.IsScalpelCuttable() && mData.PowerRating >= part.CuttingTargetable.PowerRating && EntityBlueprintComponent.IsValid(part.EntityBlueprintComponent))
-			{
-				if (!(part.Group == null))
-				{
-					return EntityBlueprintComponent.IsValid(part.Group.EntityBlueprintComponent);
-				}
-				return true;
-			}
-			return false;
+			return part != null && part.CuttingTargetable != null && part.CuttingTargetable.IsScalpelCuttable() && this.mData.PowerRating >= part.CuttingTargetable.PowerRating && EntityBlueprintComponent.IsValid(part.EntityBlueprintComponent) && (part.Group == null || EntityBlueprintComponent.IsValid(part.Group.EntityBlueprintComponent));
 		}
 
+		// Token: 0x06001F19 RID: 7961 RVA: 0x000851FC File Offset: 0x000833FC
 		private int GetTargetTypeRTPCValue(ScalpelTarget target)
 		{
+			int result;
 			if (target.IsValid)
 			{
-				return 1;
+				result = 1;
 			}
-			if (target.Part != null)
+			else if (target.Part != null)
 			{
-				return 2;
+				result = 2;
 			}
-			return 0;
+			else
+			{
+				result = 0;
+			}
+			return result;
 		}
 
+		// Token: 0x06001F1A RID: 7962 RVA: 0x0008522A File Offset: 0x0008342A
 		private void UpdateTargetTypeRTPC(int value)
 		{
-			Main.EventSystem.Post(SetRTPCEvent.GetMasterEvent(mData.ScalpelTargetTypeAudioParameter, value));
+			Main.EventSystem.Post(SetRTPCEvent.GetMasterEvent(this.mData.ScalpelTargetTypeAudioParameter, (float)value));
 		}
+
+		// Token: 0x04001665 RID: 5733
+		[SerializeField]
+		private ScalpelAsset m_ScalpelAsset;
+
+		// Token: 0x04001666 RID: 5734
+		private IScalpelData mData;
+
+		// Token: 0x04001667 RID: 5735
+		private bool mCanBeUnequipped = true;
+
+		// Token: 0x04001668 RID: 5736
+		private float mCameraShakeStartTime;
+
+		// Token: 0x04001669 RID: 5737
+		private CuttingToolController mCuttingToolController;
+
+		// Token: 0x0400166A RID: 5738
+		private const int kTargetTypeNothing = 0;
+
+		// Token: 0x0400166B RID: 5739
+		private const int kTargetTypeValid = 1;
+
+		// Token: 0x0400166C RID: 5740
+		private const int kTargetTypeInvalid = 2;
 	}
 }
